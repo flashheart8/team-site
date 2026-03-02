@@ -1,0 +1,31 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #1a1a1a;
+  background: #ffffff;
+}
+
+header {
+  padding: 2rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+main {
+  flex: 1;
+  padding: 2rem;
+}
+
+footer {
+  padding: 1rem 2rem;
+  border-top: 1px solid #e5e5e5;
+  font-size: 0.875rem;
+  color: #666;
+}
