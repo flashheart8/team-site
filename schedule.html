@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rail 1020 — March 2026 Schedule</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #eef2f7;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: #0f2044;
+      color: #fff;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 4px solid #c8102e;
+    }
+    .site-header .eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #7fafd4;
+      margin-bottom: 0.2rem;
+    }
+    .site-header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* ── Week tabs ── */
+    .week-tabs {
+      background: #0a1a38;
+      display: flex;
+      padding: 0 1rem;
+      gap: 0.25rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .week-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 0.7rem 1.25rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #7fafd4;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active { color: #fff; border-bottom-color: #c8102e; }
+
+    /* ── Main content ── */
+    .content { padding: 1.25rem; }
+
+    .week-panel { display: none; }
+    .week-panel.active { display: block; }
+
+    .week-heading {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f2044;
+      margin-bottom: 0.75rem;
+    }
+    .week-heading span {
+      font-weight: 400;
+      color: #64748b;
+      font-size: 0.82rem;
+      margin-left: 0.5rem;
+    }
+
+    /* ── Table wrapper (enables horizontal scroll on small screens) ── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* ── Schedule table ── */
+    .sched {
+      width: 100%;
+      min-width: 640px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    /* Header: week title */
+    .row-title td {
+      background: #0f2044;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 0.75rem 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    /* Header: dates */
+    .row-dates td {
+      background: #1e3a6e;
+      color: #cde;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-align: center;
+      padding: 0.45rem 0.5rem;
+    }
+    .row-dates td.t-col { background: #0f2044; color: #7fafd4; text-align: left; font-size: 0.7rem; }
+    .row-dates td.today { background: #c8102e; color: #fff; }
+
+    /* Header: instructors */
+    .row-inst td {
+      background: #243f72;
+      color: #a8c8ef;
+      font-size: 0.72rem;
+      text-align: center;
+      padding: 0.3rem 0.5rem;
+      line-height: 1.4;
+      border-bottom: 2px solid #1e3a6e;
+    }
+    .row-inst td.t-col { background: #1a2f58; color: #7fafd4; text-align: left; }
+
+    /* Time label column */
+    .t-col {
+      width: 62px;
+      background: #f8fafc;
+      color: #94a3b8;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-align: right;
+      padding: 0 0.6rem;
+      border-right: 2px solid #e2e8f0;
+      vertical-align: top;
+      padding-top: 0.4rem;
+      white-space: nowrap;
+    }
+
+    /* Generic cell */
+    .sched td {
+      border-bottom: 1px solid #e8edf3;
+      vertical-align: middle;
+      padding: 0.35rem 0.5rem;
+      height: 34px;
+    }
+    .sched tr:last-child td { border-bottom: none; }
+
+    /* Cell types */
+    .c-empty { background: #fafbfc; }
+
+    .c-day {
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .c-module {
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .c-topic {
+      background: #dcfce7;
+      color: #14532d;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 1.35;
+      padding: 0.5rem;
+    }
+
+    .c-exam {
+      background: #fef9c3;
+      color: #78350f;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 1.4;
+    }
+    .c-exam .exam-tag {
+      display: block;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #92400e;
+      margin-bottom: 0.15rem;
+    }
+
+    .c-lunch {
+      background: #f1f5f9;
+      color: #94a3b8;
+      font-size: 0.68rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+
+    .c-fullday {
+      background: #f5f3ff;
+      color: #4c1d95;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      vertical-align: middle;
+      padding: 1rem 0.5rem;
+      line-height: 1.5;
+    }
+    .c-fullday .fd-day {
+      display: inline-block;
+      background: #7e22ce;
+      color: #fff;
+      font-size: 0.6rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+    }
+    .c-fullday .fd-mod {
+      display: block;
+      font-size: 0.7rem;
+      color: #9333ea;
+      margin-bottom: 0.15rem;
+    }
+    .c-fullday .fd-topic {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #3b0764;
+    }
+
+    .c-review {
+      background: #ede9fe;
+      color: #4c1d95;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 1.35;
+    }
+
+    .c-celebrate {
+      background: #fef3c7;
+      color: #78350f;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      color: #475569;
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 480px) {
+      .content { padding: 0.75rem; }
+      .site-header h1 { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <p class="eyebrow">CN Rail Training</p>
+  <h1>Rail 1020 — March 2026 Schedule</h1>
+</header>
+
+<nav class="week-tabs">
+  <button class="tab-btn active" onclick="showWeek(1)">Week 1 &nbsp;Mar 2–6</button>
+  <button class="tab-btn" onclick="showWeek(2)">Week 2 &nbsp;Mar 9–13</button>
+  <button class="tab-btn" onclick="showWeek(3)">Week 3 &nbsp;Mar 16–20</button>
+  <button class="tab-btn" onclick="showWeek(4)">Week 4 &nbsp;Mar 23–27</button>
+</nav>
+
+<main class="content">
+
+  <!-- ═══════════ WEEK 1 ═══════════ -->
+  <section class="week-panel active" id="week-1">
+    <p class="week-heading">Week 1 <span>March 2 – 6, 2026 &nbsp;·&nbsp; Days 1–5</span></p>
+    <div class="table-wrap">
+      <table class="sched">
+        <tbody>
+          <tr class="row-title"><td colspan="6">Rail 1020 — Schedule — Week 1</td></tr>
+          <tr class="row-dates">
+            <td class="t-col">Date</td>
+            <td>Mon, Mar 2</td>
+            <td>Tue, Mar 3</td>
+            <td>Wed, Mar 4</td>
+            <td>Thu, Mar 5</td>
+            <td class="today">Fri, Mar 6</td>
+          </tr>
+          <tr class="row-inst">
+            <td class="t-col">Instructors</td>
+            <td>Bill Victor<br>Dave Moorey</td>
+            <td>Mario Piche<br>Bill Victor</td>
+            <td>Bill Victor<br>Craig Brown</td>
+            <td>Mario Piche<br>Dave Moorey</td>
+            <td>Mario Piche<br>James Duggan</td>
+          </tr>
+          <!-- 8:00 -->
+          <tr>
+            <td class="t-col">8:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-exam" rowspan="2">
+              <span class="exam-tag">Weekly Exam</span>
+              Modules 1, 2, 3
+            </td>
+          </tr>
+          <!-- 8:30 -->
+          <tr>
+            <td class="t-col">8:30</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <!-- 9:00 -->
+          <tr>
+            <td class="t-col">9:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <!-- 9:30 — Day label -->
+          <tr>
+            <td class="t-col">9:30</td>
+            <td class="c-day" rowspan="2">DAY 1</td>
+            <td class="c-day" rowspan="2">DAY 2</td>
+            <td class="c-day" rowspan="2">DAY 3</td>
+            <td class="c-day" rowspan="2">DAY 4</td>
+            <td class="c-day" rowspan="2">DAY 5</td>
+          </tr>
+          <!-- 10:00 -->
+          <tr><td class="t-col">10:00</td></tr>
+          <!-- 10:30 — Module -->
+          <tr>
+            <td class="t-col">10:30</td>
+            <td class="c-module" rowspan="2">Module 1</td>
+            <td class="c-module" rowspan="2">Module 2</td>
+            <td class="c-module" rowspan="2">Module 2</td>
+            <td class="c-module" rowspan="2">Module 3</td>
+            <td class="c-module" rowspan="2">Module 4</td>
+          </tr>
+          <!-- 11:00 -->
+          <tr><td class="t-col">11:00</td></tr>
+          <!-- 11:30 — Afternoon topic -->
+          <tr>
+            <td class="t-col">11:30</td>
+            <td class="c-topic" rowspan="3">Railway Freight &amp;<br>Passenger Equipment</td>
+            <td class="c-topic" rowspan="3">Air Brakes</td>
+            <td class="c-topic" rowspan="3">Air Brakes</td>
+            <td class="c-topic" rowspan="3">Air Brake Policies<br>and Testing</td>
+            <td class="c-topic" rowspan="3">Securement of<br>Unattended Equipment</td>
+          </tr>
+          <!-- 12:00 — Lunch (hidden inside topic span) -->
+          <tr><td class="t-col">12:00</td></tr>
+          <tr><td class="t-col">12:30</td></tr>
+          <!-- 13:00 -->
+          <tr>
+            <td class="t-col">1:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <!-- 14:00 -->
+          <tr>
+            <td class="t-col">2:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════ WEEK 2 ═══════════ -->
+  <section class="week-panel" id="week-2">
+    <p class="week-heading">Week 2 <span>March 9 – 13, 2026 &nbsp;·&nbsp; Days 6–10</span></p>
+    <div class="table-wrap">
+      <table class="sched">
+        <tbody>
+          <tr class="row-title"><td colspan="6">Rail 1020 — Schedule — Week 2</td></tr>
+          <tr class="row-dates">
+            <td class="t-col">Date</td>
+            <td>Mon, Mar 9</td>
+            <td>Tue, Mar 10</td>
+            <td>Wed, Mar 11</td>
+            <td>Thu, Mar 12</td>
+            <td>Fri, Mar 13</td>
+          </tr>
+          <tr class="row-inst">
+            <td class="t-col">Instructors</td>
+            <td>James Duggan</td>
+            <td>Mario Piche<br>James Duggan</td>
+            <td>James Duggan</td>
+            <td>Mario Piche<br>Dave Moorey</td>
+            <td>Mario Piche<br>Dave Moorey</td>
+          </tr>
+          <tr>
+            <td class="t-col">8:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-exam" rowspan="2">
+              <span class="exam-tag">Weekly Exam</span>
+              Modules 4, 5, 6, 7
+            </td>
+          </tr>
+          <tr>
+            <td class="t-col">8:30</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <tr>
+            <td class="t-col">9:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <tr>
+            <td class="t-col">9:30</td>
+            <td class="c-day" rowspan="2">DAY 6</td>
+            <td class="c-day" rowspan="2">DAY 7</td>
+            <td class="c-day" rowspan="2">DAY 8</td>
+            <td class="c-day" rowspan="2">DAY 9</td>
+            <td class="c-day" rowspan="2">DAY 10</td>
+          </tr>
+          <tr><td class="t-col">10:00</td></tr>
+          <tr>
+            <td class="t-col">10:30</td>
+            <td class="c-module" rowspan="2">Module 5</td>
+            <td class="c-module" rowspan="2">Module 6</td>
+            <td class="c-module" rowspan="2">Module 7</td>
+            <td class="c-module" rowspan="2">Module 7</td>
+            <td class="c-module" rowspan="2">Module 8</td>
+          </tr>
+          <tr><td class="t-col">11:00</td></tr>
+          <tr>
+            <td class="t-col">11:30</td>
+            <td class="c-topic" rowspan="3">Train Inspections<br>and Detectors</td>
+            <td class="c-topic" rowspan="3">Train Information<br>Braking Systems<br>(TIBS)</td>
+            <td class="c-topic" rowspan="3">Train<br>Marshalling</td>
+            <td class="c-topic" rowspan="3">Train<br>Marshalling</td>
+            <td class="c-topic" rowspan="3">Transportation of<br>Dangerous Goods<br>Level 3</td>
+          </tr>
+          <tr><td class="t-col">12:00</td></tr>
+          <tr><td class="t-col">12:30</td></tr>
+          <tr>
+            <td class="t-col">1:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <tr>
+            <td class="t-col">2:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════ WEEK 3 ═══════════ -->
+  <section class="week-panel" id="week-3">
+    <p class="week-heading">Week 3 <span>March 16 – 20, 2026 &nbsp;·&nbsp; Days 11–15</span></p>
+    <div class="table-wrap">
+      <table class="sched">
+        <tbody>
+          <tr class="row-title"><td colspan="6">Rail 1020 — Schedule — Week 3</td></tr>
+          <tr class="row-dates">
+            <td class="t-col">Date</td>
+            <td>Mon, Mar 16</td>
+            <td>Tue, Mar 17</td>
+            <td>Wed, Mar 18</td>
+            <td>Thu, Mar 19</td>
+            <td>Fri, Mar 20</td>
+          </tr>
+          <tr class="row-inst">
+            <td class="t-col">Instructors</td>
+            <td>Mario Piche</td>
+            <td>Mario Piche<br>Dave Morrey</td>
+            <td>Vince Jones</td>
+            <td>Curtis Kobsey</td>
+            <td>Mario Piche</td>
+          </tr>
+          <tr>
+            <td class="t-col">8:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-exam" rowspan="2">
+              <span class="exam-tag">Weekly Exam</span>
+              Modules 8, 9, 10, 11, 15
+            </td>
+          </tr>
+          <tr>
+            <td class="t-col">8:30</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <tr>
+            <td class="t-col">9:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <tr>
+            <td class="t-col">9:30</td>
+            <td class="c-day" rowspan="2">DAY 11</td>
+            <td class="c-day" rowspan="2">DAY 12</td>
+            <td class="c-day" rowspan="2">DAY 13</td>
+            <td class="c-day" rowspan="2">DAY 14</td>
+            <td class="c-day" rowspan="2">DAY 15</td>
+          </tr>
+          <tr><td class="t-col">10:00</td></tr>
+          <tr>
+            <td class="t-col">10:30</td>
+            <td class="c-module" rowspan="2">Module 9</td>
+            <td class="c-module" rowspan="2">Module 10</td>
+            <td class="c-module" rowspan="2">Module 11</td>
+            <td class="c-module" rowspan="2">Module 12</td>
+            <td class="c-module" rowspan="2">Module 15</td>
+          </tr>
+          <tr><td class="t-col">11:00</td></tr>
+          <tr>
+            <td class="t-col">11:30</td>
+            <td class="c-topic" rowspan="3">Radio Equipment<br>and Procedures</td>
+            <td class="c-topic" rowspan="3">Dimensional<br>Traffic</td>
+            <td class="c-topic" rowspan="3">Passenger Train<br>Safety</td>
+            <td class="c-topic" rowspan="3">Railway Technology<br>and PTC Systems</td>
+            <td class="c-topic" rowspan="3">Accident<br>Handling</td>
+          </tr>
+          <tr><td class="t-col">12:00</td></tr>
+          <tr><td class="t-col">12:30</td></tr>
+          <tr>
+            <td class="t-col">1:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <tr>
+            <td class="t-col">2:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════ WEEK 4 ═══════════ -->
+  <section class="week-panel" id="week-4">
+    <p class="week-heading">Week 4 <span>March 23 – 27, 2026 &nbsp;·&nbsp; Days 16–20</span></p>
+    <div class="table-wrap">
+      <table class="sched">
+        <tbody>
+          <tr class="row-title"><td colspan="6">Rail 1020 — Schedule — Week 4</td></tr>
+          <tr class="row-dates">
+            <td class="t-col">Date</td>
+            <td>Mon, Mar 23</td>
+            <td>Tue, Mar 24</td>
+            <td>Wed, Mar 25</td>
+            <td>Thu, Mar 26</td>
+            <td>Fri, Mar 27</td>
+          </tr>
+          <tr class="row-inst">
+            <td class="t-col">Instructors</td>
+            <td>—</td>
+            <td>Mario Piche</td>
+            <td>—</td>
+            <td>Mario Piche</td>
+            <td>Mario Piche</td>
+          </tr>
+          <!-- 8:00 -->
+          <tr>
+            <td class="t-col">8:00</td>
+            <td class="c-fullday" rowspan="9">
+              <span class="fd-day">DAY 16</span>
+              <span class="fd-mod">Module 14</span>
+              <span class="fd-topic">Switching</span>
+            </td>
+            <td class="c-fullday" rowspan="9">
+              <span class="fd-day">DAY 17</span>
+              <span class="fd-mod">Module 13</span>
+              <span class="fd-topic">Railway Operations<br>and Management</span>
+            </td>
+            <td class="c-fullday" rowspan="9">
+              <span class="fd-day">DAY 18</span>
+              <span class="fd-mod">Module 16</span>
+              <span class="fd-topic">Crew Resource<br>Management</span>
+            </td>
+            <td class="c-fullday" rowspan="9">
+              <span class="fd-day">DAY 19</span>
+              <span class="fd-mod">Module 17</span>
+              <span class="fd-topic">Track</span>
+            </td>
+            <td class="c-exam" rowspan="2">
+              <span class="exam-tag">Weekly Exam</span>
+              Modules 12, 13, 14, 16, 17
+            </td>
+          </tr>
+          <tr><td class="t-col">8:30</td></tr>
+          <!-- 9:00 — Final marks -->
+          <tr>
+            <td class="t-col">9:00</td>
+            <td class="c-review" rowspan="4">Final Marks<br>and Course Review</td>
+          </tr>
+          <tr><td class="t-col">9:30</td></tr>
+          <tr><td class="t-col">10:00</td></tr>
+          <tr><td class="t-col">10:30</td></tr>
+          <!-- 11:00 -->
+          <tr><td class="t-col">11:00</td>
+            <td class="c-empty"></td>
+          </tr>
+          <!-- 12:00 — Lunch -->
+          <tr>
+            <td class="t-col">12:00</td>
+            <td class="c-lunch" rowspan="2">Lunch</td>
+          </tr>
+          <tr><td class="t-col">12:30</td></tr>
+          <!-- 13:00 — Celebration -->
+          <tr>
+            <td class="t-col">1:00</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-celebrate" rowspan="2">🎓 Celebration<br>and Certificates</td>
+          </tr>
+          <tr>
+            <td class="t-col">1:30</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+          <tr>
+            <td class="t-col">2:30</td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+            <td class="c-empty"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#dbeafe"></div> Module Study
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#dcfce7"></div> Afternoon Topic
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#fef9c3"></div> Weekly Exam
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#f5f3ff"></div> Full-Day Topic
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#ede9fe"></div> Course Review
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#fef3c7"></div> Celebration
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function showWeek(n) {
+    document.querySelectorAll('.week-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('week-' + n).classList.add('active');
+    document.querySelectorAll('.tab-btn')[n - 1].classList.add('active');
+  }
+
+  // Auto-select the current week based on today's date
+  (function () {
+    const today = new Date();
+    const ranges = [
+      [new Date('2026-03-02'), new Date('2026-03-06')],
+      [new Date('2026-03-09'), new Date('2026-03-13')],
+      [new Date('2026-03-16'), new Date('2026-03-20')],
+      [new Date('2026-03-23'), new Date('2026-03-27')],
+    ];
+    for (let i = 0; i < ranges.length; i++) {
+      if (today >= ranges[i][0] && today <= ranges[i][1]) {
+        showWeek(i + 1);
+        break;
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>

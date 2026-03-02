@@ -23,6 +23,19 @@ main {
   padding: 2rem;
 }
 
+.schedule-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.6rem 1.25rem;
+  background: #0f2044;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.schedule-link:hover { background: #1e3a6e; }
+
 footer {
   padding: 1rem 2rem;
   border-top: 1px solid #e5e5e5;
