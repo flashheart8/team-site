@@ -268,6 +268,56 @@
     .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: #475569; }
     .swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
 
+    /* ── Upcoming section ── */
+    .upcoming {
+      margin-top: 1.5rem;
+    }
+    .upcoming-heading {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .upcoming-heading::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+    .upcoming-list { display: flex; flex-direction: column; gap: 0.65rem; }
+    .upcoming-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.09);
+      display: flex;
+      align-items: stretch;
+      overflow: hidden;
+    }
+    .upcoming-datebox {
+      background: #0f2044;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0.85rem 1rem;
+      min-width: 62px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .upcoming-datebox .u-day   { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+    .upcoming-datebox .u-month { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.65; margin-top: 0.2rem; }
+    .upcoming-body { flex: 1; padding: 0.75rem 1.1rem; }
+    .upcoming-event { font-size: 0.95rem; font-weight: 700; color: #1a202c; line-height: 1.3; }
+    .upcoming-meta  { display: flex; flex-wrap: wrap; gap: 0.6rem 1.25rem; margin-top: 0.35rem; align-items: center; }
+    .upcoming-time  { font-size: 0.78rem; font-weight: 700; color: #c8102e; }
+    .upcoming-inst  { font-size: 0.78rem; color: #64748b; }
+
     /* ── Responsive ── */
     @media (max-width: 640px) {
       .site-header h1 { font-size: 1.05rem; }
@@ -322,6 +372,12 @@ const WEEKS = [
     {n:20, date:"Fri, Mar 27", iso:"2026-03-27", inst:["Mario Piche","Vince Jones"],  exam:"Modules 13, 14, 15, 16, 17",
       special:["Final Marks and Course Review","Celebration and Certificates"]},
   ]},
+];
+
+const UPCOMING = [
+  { event:"Trades Discovery",                        day:30, month:"Mar", time:"07:30", inst:["Bill Victor","James Duggan"] },
+  { event:"Trades Discovery",                        day:1,  month:"Apr", time:"07:30", inst:["James Duggan"] },
+  { event:"Program Advisory Committee (PAC) Meeting",day:8,  month:"Apr", time:"09:00", inst:[] },
 ];
 
 const DAY_ABBR = ['Mon','Tue','Wed','Thu','Fri'];
@@ -453,12 +509,38 @@ const LEGEND_HTML = `<div class="legend">
   <div class="legend-item"><div class="swatch" style="background:#d1fae5"></div> Celebration</div>
 </div>`;
 
+/* ── Upcoming events ── */
+function renderUpcoming() {
+  const cards = UPCOMING.map(e => {
+    const instHtml = e.inst.length
+      ? `<span class="upcoming-inst">${e.inst.join(' · ')}</span>`
+      : '';
+    return `<div class="upcoming-card">
+      <div class="upcoming-datebox">
+        <span class="u-day">${e.day}</span>
+        <span class="u-month">${e.month}</span>
+      </div>
+      <div class="upcoming-body">
+        <div class="upcoming-event">${e.event}</div>
+        <div class="upcoming-meta">
+          <span class="upcoming-time">${e.time}</span>
+          ${instHtml}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="upcoming">
+    <div class="upcoming-heading">Upcoming</div>
+    <div class="upcoming-list">${cards}</div>
+  </div>`;
+}
+
 /* ── Full render ── */
 function render() {
   document.getElementById('root').innerHTML =
     WEEKS.map(w => `<section class="week-panel${w.num===curWeek?' active':''}" id="week-${w.num}">
       ${renderTable(w)}${renderCards(w)}
-    </section>`).join('') + LEGEND_HTML;
+    </section>`).join('') + LEGEND_HTML + renderUpcoming();
   buildWeekTabs();
   buildDayTabs();
 }
