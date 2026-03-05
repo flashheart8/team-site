@@ -540,7 +540,7 @@ function render() {
   document.getElementById('root').innerHTML =
     WEEKS.map(w => `<section class="week-panel${w.num===curWeek?' active':''}" id="week-${w.num}">
       ${renderTable(w)}${renderCards(w)}
-    </section>`).join('') + LEGEND_HTML + renderUpcoming();
+    </section>`).join('') + LEGEND_HTML;
   buildWeekTabs();
   buildDayTabs();
 }
