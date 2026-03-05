@@ -348,28 +348,28 @@ const WEEKS = [
     {n:2,  date:"Tue, Mar 3",  iso:"2026-03-03", inst:["Mario Piche","Bill Victor"],  module:"Module 2",  topic:"Air Brakes"},
     {n:3,  date:"Wed, Mar 4",  iso:"2026-03-04", inst:["Bill Victor","Craig Brown"],  module:"Module 2",  topic:"Air Brakes"},
     {n:4,  date:"Thu, Mar 5",  iso:"2026-03-05", inst:["Mario Piche","Dave Moorey"],  module:"Module 3",  topic:"Air Brake Policies and Testing"},
-    {n:5,  date:"Fri, Mar 6",  iso:"2026-03-06", inst:["Mario Piche","James Duggan"], exam:"Modules 1, 2, 3",       module:"Module 4",  topic:"Securement of Unattended Equipment"},
+    {n:5,  date:"Fri, Mar 6",  iso:"2026-03-06", inst:["Mario Piche","James Duggan"], exam:"Modules 1, 2, 3", examTime:"10:00 am", module:"Module 4",  topic:"Securement of Unattended Equipment"},
   ]},
   { num:2, range:"Mar 9–13", full:"March 9–13, 2026", days:[
     {n:6,  date:"Mon, Mar 9",  iso:"2026-03-09", inst:["Vince Jones","James Duggan"], module:"Module 5",  topic:"Train Inspections and Detectors"},
     {n:7,  date:"Tue, Mar 10", iso:"2026-03-10", inst:["Mario Piche","James Duggan"], module:"Module 6",  topic:"Train Information Braking Systems (TIBS)"},
     {n:8,  date:"Wed, Mar 11", iso:"2026-03-11", inst:["Bill Victor","James Duggan"], module:"Module 7",  topic:"Train Marshalling"},
     {n:9,  date:"Thu, Mar 12", iso:"2026-03-12", inst:["Mario Piche","Dave Moorey"],  module:"Module 7",  topic:"Train Marshalling"},
-    {n:10, date:"Fri, Mar 13", iso:"2026-03-13", inst:["Mario Piche","Dave Moorey"],  exam:"Modules 4, 5, 6, 7",    module:"Module 8",  topic:"Transportation of Dangerous Goods Level 3"},
+    {n:10, date:"Fri, Mar 13", iso:"2026-03-13", inst:["Mario Piche","Dave Moorey"],  exam:"Modules 4, 5, 6, 7", examTime:"11:00 am", module:"Module 8",  topic:"Transportation of Dangerous Goods Level 3"},
   ]},
   { num:3, range:"Mar 16–20", full:"March 16–20, 2026", days:[
     {n:11, date:"Mon, Mar 16", iso:"2026-03-16", inst:["Mario Piche","Bill Victor"],  module:"Module 9",  topic:"Radio Equipment and Procedures"},
     {n:12, date:"Tue, Mar 17", iso:"2026-03-17", inst:["Mario Piche","Dave Morrey"],  module:"Module 10", topic:"Dimensional Traffic"},
     {n:13, date:"Wed, Mar 18", iso:"2026-03-18", inst:["Bill Victor","Craig Brown"],  module:"Module 11", topic:"Passenger Train Safety"},
     {n:14, date:"Thu, Mar 19", iso:"2026-03-19", inst:["Mario Piche","Craig Brown"],  module:"Module 12", topic:"Railway Technology and PTC Systems"},
-    {n:15, date:"Fri, Mar 20", iso:"2026-03-20", inst:["Craig Brown","Rob Bahia"],    exam:"Modules 8, 9, 10, 11, 12", module:"Module 14", topic:"Switching"},
+    {n:15, date:"Fri, Mar 20", iso:"2026-03-20", inst:["Craig Brown","Rob Bahia"],    exam:"Modules 8, 9, 10, 11, 12", examTime:"8:00 am", module:"Module 14", topic:"Switching"},
   ]},
   { num:4, range:"Mar 23–27", full:"March 23–27, 2026", days:[
     {n:16, date:"Mon, Mar 23", iso:"2026-03-23", inst:["Bill Victor","Rob Bahia"],    module:"Module 15", topic:"Accident Handling and Investigation"},
     {n:17, date:"Tue, Mar 24", iso:"2026-03-24", inst:["Mario Piche","Rob Bahia"],    module:"Module 16", topic:"Crew Resource Management"},
     {n:18, date:"Wed, Mar 25", iso:"2026-03-25", inst:["Mario Piche","Bill Victor"],  module:"Module 17", topic:"Track"},
     {n:19, date:"Thu, Mar 26", iso:"2026-03-26", inst:["Curtis Kobsey"],              module:"Module 13", topic:"Railway Operations and Management"},
-    {n:20, date:"Fri, Mar 27", iso:"2026-03-27", inst:["Mario Piche","Vince Jones"],  exam:"Modules 13, 14, 15, 16, 17",
+    {n:20, date:"Fri, Mar 27", iso:"2026-03-27", inst:["Mario Piche","Vince Jones"],  exam:"Modules 13, 14, 15, 16, 17", examTime:"11:30 am",
       special:["Final Marks and Course Review","Celebration and Certificates"]},
   ]},
 ];
@@ -424,7 +424,7 @@ function renderTable(w) {
   const dateRow  = w.days.map(d => `<td class="${d.iso===todayISO?'is-today':''}">${d.date}</td>`).join('');
   const instRow  = w.days.map(d => `<td>${d.inst.join('<br>')}</td>`).join('');
   const examRow  = w.days.map(d => d.exam
-    ? `<td class="c-exam"><small>Weekly Exam</small>${d.exam}</td>`
+    ? `<td class="c-exam"><small>Weekly Exam${d.examTime ? ' · ' + d.examTime : ''}</small>${d.exam}</td>`
     : `<td class="c-empty"></td>`).join('');
   const dayRow   = w.days.map(d => `<td class="c-day">DAY ${d.n}</td>`).join('');
   const modRow   = w.days.map(d =>
@@ -457,7 +457,7 @@ function renderCards(w) {
     if (d.exam) {
       rows += `<div class="card-row row-exam">
         <div class="card-time">8:00</div>
-        <div class="card-content"><div><span class="exam-label">Weekly Exam</span>${d.exam}</div></div>
+        <div class="card-content"><div><span class="exam-label">Weekly Exam${d.examTime ? ' · ' + d.examTime : ''}</span>${d.exam}</div></div>
       </div>`;
     }
 
