@@ -1,0 +1,2094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 5: Train Inspection and Detectors | BCIT Rail 1020</title>
+<style>
+:root{
+  --navy:#122044; --navy-mid:#1a2e58; --navy-lt:#243760;
+  --yellow:#FFE600; --yellow-dk:#c9b700;
+  --white:#fff; --off-white:#f7f8fa;
+  --gray-1:#eef0f4; --gray-2:#d5d8dc; --gray-3:#8e9aad; --gray-4:#4a5568;
+  --red:#c8102e; --green:#1e8b4c; --orange:#e67e22; --blue:#2980b9;
+  --sidebar:280px; --hdr:58px;
+  --radius:8px; --shadow:0 2px 12px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--off-white);color:#222;font-size:16px;line-height:1.65}
+.hdr{position:fixed;top:0;left:0;right:0;height:var(--hdr);
+  background:var(--navy);display:flex;align-items:center;padding:0 20px;
+  z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.hdr-logo{height:36px;margin-right:16px}
+.hdr-title{color:var(--yellow);font-weight:700;font-size:1rem;flex:1}
+.hdr-prog-wrap{width:200px;margin-left:16px}
+.hdr-prog-label{color:var(--gray-3);font-size:.7rem;margin-bottom:3px}
+.hdr-prog-bar{height:6px;background:var(--navy-lt);border-radius:3px;overflow:hidden}
+.hdr-prog-fill{height:100%;background:var(--yellow);transition:width .4s ease}
+.hdr-menu-btn{display:none;background:none;border:none;color:var(--white);
+  font-size:1.4rem;cursor:pointer;margin-left:12px;padding:4px 8px}
+.sidebar{position:fixed;top:var(--hdr);left:0;bottom:0;width:var(--sidebar);
+  background:var(--navy-mid);overflow-y:auto;z-index:100;transition:transform .3s ease}
+.sidebar-inner{padding:12px 0 40px}
+.nav-section-hdr{padding:14px 18px 4px;font-size:.65rem;font-weight:700;
+  letter-spacing:.1em;color:var(--gray-3);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;padding:8px 18px 8px 24px;
+  cursor:pointer;transition:background .15s;gap:8px;border-left:3px solid transparent}
+.nav-item:hover{background:var(--navy-lt)}
+.nav-item.active{background:var(--navy-lt);border-left-color:var(--yellow);color:var(--yellow)}
+.nav-item.done .nav-check{color:var(--green)}
+.nav-item-num{font-size:.7rem;color:var(--gray-3);min-width:24px}
+.nav-item-title{font-size:.82rem;color:var(--gray-2);flex:1;line-height:1.3}
+.nav-item.active .nav-item-title{color:var(--yellow)}
+.nav-check{font-size:.8rem;color:transparent}
+.nav-toggle{cursor:pointer;padding:6px 18px;font-size:.8rem;color:var(--gray-3);
+  display:flex;align-items:center;gap:6px;user-select:none}
+.nav-section-group{overflow:hidden;transition:max-height .3s ease;max-height:1000px}
+.nav-section-group.collapsed{max-height:0}
+.main{margin-left:var(--sidebar);margin-top:var(--hdr);min-height:calc(100vh - var(--hdr));
+  display:flex;flex-direction:column}
+.content-wrap{flex:1;max-width:860px;width:100%;margin:0 auto;padding:32px 24px 80px}
+.page{display:none;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page-section-badge{display:inline-block;background:var(--yellow);color:var(--navy);
+  font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:3px 10px;border-radius:3px;margin-bottom:10px}
+.page-title{font-size:1.7rem;font-weight:700;color:var(--navy);margin-bottom:6px;line-height:1.2}
+.page-meta{font-size:.78rem;color:var(--gray-3);margin-bottom:20px;display:flex;gap:16px}
+.page-divider{height:3px;background:linear-gradient(90deg,var(--yellow),transparent);
+  border-radius:2px;margin-bottom:24px}
+p{margin-bottom:14px}
+h3{font-size:1.1rem;color:var(--navy);margin:20px 0 8px;font-weight:700}
+h4{font-size:.95rem;color:var(--navy-mid);margin:16px 0 6px;font-weight:600}
+ul,ol{margin:0 0 14px 20px}
+li{margin-bottom:6px}
+strong{color:var(--navy)}
+.card{background:var(--white);border-radius:var(--radius);padding:20px;
+  box-shadow:var(--shadow);margin-bottom:20px}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.card-row.three{grid-template-columns:1fr 1fr 1fr}
+.card.accent-yellow{border-left:4px solid var(--yellow)}
+.card.accent-red{border-left:4px solid var(--red)}
+.card.accent-green{border-left:4px solid var(--green)}
+.card.accent-orange{border-left:4px solid var(--orange)}
+.card.accent-blue{border-left:4px solid var(--blue)}
+.card-icon{font-size:1.8rem;margin-bottom:8px}
+.card-title{font-weight:700;color:var(--navy);margin-bottom:6px;font-size:.95rem}
+.card p{font-size:.88rem;color:var(--gray-4);margin-bottom:0}
+.callout{border-radius:var(--radius);padding:16px 18px;margin-bottom:18px;display:flex;gap:14px;align-items:flex-start}
+.callout-icon{font-size:1.5rem;flex-shrink:0;margin-top:1px}
+.callout.info{background:#e8f4fd;border-left:4px solid var(--blue)}
+.callout.warning{background:#fef9e7;border-left:4px solid var(--orange)}
+.callout.danger{background:#fde8eb;border-left:4px solid var(--red)}
+.callout.success{background:#e9f7ef;border-left:4px solid var(--green)}
+.callout.rule{background:var(--navy);color:var(--white);border-left:4px solid var(--yellow)}
+.callout.rule strong{color:var(--yellow)}
+.callout p{margin-bottom:0;font-size:.9rem}
+.definition{background:var(--navy);color:var(--white);border-radius:var(--radius);
+  padding:20px 24px;margin-bottom:20px}
+.definition-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--yellow);margin-bottom:6px}
+.definition p{font-size:1.05rem;line-height:1.6;margin-bottom:0}
+.step-list{counter-reset:steps;list-style:none;margin:0 0 18px 0}
+.step-list li{counter-increment:steps;display:flex;gap:14px;margin-bottom:16px;align-items:flex-start}
+.step-list li::before{content:counter(steps);background:var(--yellow);color:var(--navy);
+  font-weight:700;font-size:.9rem;min-width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-list li p{margin:0;font-size:.9rem}
+.step-list li strong{display:block;font-size:.95rem;color:var(--navy);margin-bottom:2px}
+.key-rule{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);
+  color:var(--white);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;
+  border:1px solid var(--yellow)}
+.key-rule-label{font-size:.65rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--yellow);margin-bottom:8px}
+.key-rule p{font-size:1rem;line-height:1.6;margin-bottom:0}
+.stat-row{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.stat-box{flex:1;min-width:140px;background:var(--navy);color:var(--white);
+  border-radius:var(--radius);padding:16px;text-align:center}
+.stat-number{font-size:2.4rem;font-weight:700;color:var(--yellow);line-height:1}
+.stat-label{font-size:.75rem;color:var(--gray-3);margin-top:4px}
+.content-img{width:100%;border-radius:var(--radius);margin-bottom:16px;box-shadow:var(--shadow)}
+.img-caption{font-size:.75rem;color:var(--gray-3);text-align:center;
+  margin-top:-10px;margin-bottom:16px}
+.img-wrap{text-align:center;margin-bottom:16px}
+.img-wrap img{max-width:100%;border-radius:var(--radius);box-shadow:var(--shadow)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.two-col.img-text{grid-template-columns:1fr 1.5fr}
+.two-col.text-img{grid-template-columns:1.5fr 1fr}
+.data-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:.85rem}
+.data-table th{background:var(--navy);color:var(--yellow);padding:8px 12px;text-align:left;font-size:.8rem}
+.data-table td{padding:7px 12px;border-bottom:1px solid var(--gray-1)}
+.data-table tr:nth-child(even) td{background:var(--gray-1)}
+.data-table tr.highlight td{background:#fff8d6;font-weight:700}
+.video-embed{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;
+  border-radius:var(--radius);margin-bottom:16px;box-shadow:var(--shadow)}
+.video-embed iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+.video-local{width:100%;border-radius:var(--radius);margin-bottom:16px;box-shadow:var(--shadow)}
+.video-placeholder{background:var(--navy);border-radius:var(--radius);padding:32px;
+  text-align:center;margin-bottom:16px;cursor:pointer;transition:background .2s}
+.video-placeholder:hover{background:var(--navy-lt)}
+.video-play-icon{font-size:3rem;color:var(--yellow);margin-bottom:12px}
+.video-title{color:var(--white);font-weight:700;margin-bottom:6px}
+.video-desc{color:var(--gray-3);font-size:.85rem}
+.video-link{display:inline-block;margin-top:12px;background:var(--yellow);
+  color:var(--navy);font-weight:700;padding:8px 20px;border-radius:20px;
+  text-decoration:none;font-size:.85rem}
+.video-link:hover{background:var(--yellow-dk)}
+.quiz-box{background:var(--white);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
+.quiz-header{background:var(--navy);color:var(--white);padding:14px 20px;
+  font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:8px}
+.quiz-header-icon{color:var(--yellow)}
+.quiz-body{padding:20px}
+.quiz-question{font-weight:600;font-size:.95rem;color:var(--navy);margin-bottom:14px}
+.quiz-option{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;
+  border-radius:6px;cursor:pointer;margin-bottom:8px;border:2px solid var(--gray-2);
+  transition:all .15s}
+.quiz-option:hover{border-color:var(--navy-mid);background:var(--gray-1)}
+.quiz-option input{margin-top:3px;flex-shrink:0;cursor:pointer}
+.quiz-option.correct{background:#e9f7ef;border-color:var(--green)}
+.quiz-option.wrong{background:#fde8eb;border-color:var(--red)}
+.quiz-option.show-correct{background:#e9f7ef;border-color:var(--green)}
+.quiz-feedback{padding:12px 14px;border-radius:6px;font-size:.88rem;
+  margin-top:10px;display:none}
+.quiz-feedback.correct{background:#e9f7ef;color:#155724}
+.quiz-feedback.wrong{background:#fde8eb;color:#721c24}
+.quiz-btn{background:var(--navy);color:var(--white);border:none;
+  padding:9px 22px;border-radius:20px;cursor:pointer;font-size:.85rem;
+  font-weight:700;margin-top:12px;transition:background .15s}
+.quiz-btn:hover{background:var(--navy-lt)}
+.quiz-btn:disabled{opacity:.5;cursor:not-allowed}
+.takeaway{background:linear-gradient(135deg,#fff8d6,#fffbe8);
+  border:2px solid var(--yellow-dk);border-radius:var(--radius);
+  padding:16px 18px;margin-bottom:20px;display:flex;gap:12px}
+.takeaway-icon{font-size:1.4rem;flex-shrink:0}
+.takeaway p{margin:0;font-size:.88rem;color:var(--navy)}
+.takeaway strong{display:block;margin-bottom:3px;font-size:.9rem}
+.page-nav{display:flex;justify-content:space-between;align-items:center;
+  margin-top:32px;padding-top:20px;border-top:2px solid var(--gray-1)}
+.page-nav-btn{background:var(--navy);color:var(--white);border:none;
+  padding:10px 24px;border-radius:24px;cursor:pointer;font-size:.88rem;
+  font-weight:700;transition:background .15s;display:flex;align-items:center;gap:6px}
+.page-nav-btn:hover{background:var(--navy-lt)}
+.page-nav-btn.next{background:var(--yellow);color:var(--navy)}
+.page-nav-btn.next:hover{background:var(--yellow-dk)}
+.page-nav-btn:disabled{opacity:.4;cursor:not-allowed}
+.page-nav-center{font-size:.8rem;color:var(--gray-3);text-align:center}
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#0a1628 100%);
+  color:var(--white);border-radius:var(--radius);padding:40px 32px;
+  text-align:center;margin-bottom:24px}
+.hero-icon{font-size:4rem;margin-bottom:12px}
+.hero-text{font-size:1.5rem;font-weight:700;margin-top:8px;color:var(--yellow)}
+.hero-sub{font-size:.95rem;color:var(--gray-3);margin-top:12px}
+.scenario{background:var(--navy);color:var(--white);border-radius:var(--radius);
+  padding:22px;margin-bottom:20px;border:2px solid var(--orange)}
+.scenario-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--orange);margin-bottom:10px}
+.scenario p{font-size:.92rem;line-height:1.65;margin-bottom:0}
+.golden-rule{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;
+  border-radius:var(--radius);margin-bottom:10px;background:var(--white);
+  border:1px solid var(--gray-2);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.golden-rule-num{background:var(--yellow);color:var(--navy);font-weight:700;
+  font-size:1rem;width:32px;height:32px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.golden-rule p{margin:0;font-size:.9rem;color:var(--navy)}
+.golden-rule strong{display:block;margin-bottom:2px}
+.alarm-card{border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;
+  border-left:5px solid;background:var(--white);box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.alarm-card.hotbox{border-left-color:var(--red)}
+.alarm-card.hotwheel{border-left-color:var(--orange)}
+.alarm-card.drag{border-left-color:var(--blue)}
+.alarm-card.noalarm{border-left-color:var(--green)}
+.alarm-label{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.alarm-card.hotbox .alarm-label{color:var(--red)}
+.alarm-card.hotwheel .alarm-label{color:var(--orange)}
+.alarm-card.drag .alarm-label{color:var(--blue)}
+.alarm-card.noalarm .alarm-label{color:var(--green)}
+.alarm-card p{margin:0;font-size:.88rem;color:var(--gray-4)}
+.msg-box{background:#f0f0f0;border-radius:6px;padding:14px 16px;margin-bottom:12px;
+  font-family:monospace;font-size:.88rem;border-left:4px solid var(--navy)}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .hdr-menu-btn{display:block}
+  .card-row,.card-row.three,.two-col{grid-template-columns:1fr}
+  .content-wrap{padding:20px 16px 60px}
+  .hdr-prog-wrap{display:none}
+  .stat-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <button class="hdr-menu-btn" id="menu-btn" aria-label="Menu">&#9776;</button>
+  <img src="media/image2.png" alt="BCIT" class="hdr-logo">
+  <div class="hdr-title">Rail 1020 &nbsp;&#183;&nbsp; Module 5: Train Inspection and Detectors</div>
+  <div class="hdr-prog-wrap">
+    <div class="hdr-prog-label" id="prog-label">0% complete</div>
+    <div class="hdr-prog-bar"><div class="hdr-prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-inner">
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;Introduction</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="0"><span class="nav-item-num">1</span><span class="nav-item-title">Module Overview</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="1"><span class="nav-item-num">2</span><span class="nav-item-title">Learning Objectives</span><span class="nav-check"></span></div>
+</div>
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;The Human Factor</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="2"><span class="nav-item-num">3</span><span class="nav-item-title">You Are the Best Detector</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="3"><span class="nav-item-num">4</span><span class="nav-item-title">Conductor's Responsibility</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="4"><span class="nav-item-num">5</span><span class="nav-item-title">The Cost of a Missed Defect</span><span class="nav-check"></span></div>
+</div>
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;Types of Inspection</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="5"><span class="nav-item-num">6</span><span class="nav-item-title">Overview of Inspection Types</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="6"><span class="nav-item-num">7</span><span class="nav-item-title">Roll-by / Pre-departure Inspection</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="7"><span class="nav-item-num">8</span><span class="nav-item-title">Pull-by Inspection</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="8"><span class="nav-item-num">9</span><span class="nav-item-title">Pull-by: Solo &amp; Speed Rules</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="9"><span class="nav-item-num">10</span><span class="nav-item-title">Running Inspection</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="10"><span class="nav-item-num">11</span><span class="nav-item-title">Passenger Car Inspections</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="11"><span class="nav-item-num">12</span><span class="nav-item-title">Knowledge Check 1</span><span class="nav-check"></span></div>
+</div>
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;Wayside Detection Systems</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="12"><span class="nav-item-num">13</span><span class="nav-item-title">What Are Wayside Detection Systems?</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="13"><span class="nav-item-num">14</span><span class="nav-item-title">How WIS Notifies the Crew</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="14"><span class="nav-item-num">15</span><span class="nav-item-title">What Is a Hot Box?</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="15"><span class="nav-item-num">16</span><span class="nav-item-title">Roller Bearings &amp; Journals</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="16"><span class="nav-item-num">17</span><span class="nav-item-title">Hot Box Detectors</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="17"><span class="nav-item-num">18</span><span class="nav-item-title">Hot Wheel Detectors</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="18"><span class="nav-item-num">19</span><span class="nav-item-title">Dragging Equipment Detectors</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="19"><span class="nav-item-num">20</span><span class="nav-item-title">Wheel Impact Load Detectors</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="20"><span class="nav-item-num">21</span><span class="nav-item-title">Derailment &amp; Truck Detectors</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="21"><span class="nav-item-num">22</span><span class="nav-item-title">Advanced Technologies</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="22"><span class="nav-item-num">23</span><span class="nav-item-title">Knowledge Check 2</span><span class="nav-check"></span></div>
+</div>
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;Alarm Response</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="23"><span class="nav-item-num">24</span><span class="nav-item-title">Monitoring Radio Channels</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="24"><span class="nav-item-num">25</span><span class="nav-item-title">"No Alarm" Message</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="25"><span class="nav-item-num">26</span><span class="nav-item-title">Hot Wheel Alarm — Response</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="26"><span class="nav-item-num">27</span><span class="nav-item-title">Hot Box Alarm — Response</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="27"><span class="nav-item-num">28</span><span class="nav-item-title">The Markal Heat Stik</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="28"><span class="nav-item-num">29</span><span class="nav-item-title">Applying the Heat Stik</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="29"><span class="nav-item-num">30</span><span class="nav-item-title">Multiple Alarms</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="30"><span class="nav-item-num">31</span><span class="nav-item-title">Dragging Equipment Response</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="31"><span class="nav-item-num">32</span><span class="nav-item-title">WIS Malfunctions</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="32"><span class="nav-item-num">33</span><span class="nav-item-title">Video: Changing a Brake Shoe</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="33"><span class="nav-item-num">34</span><span class="nav-item-title">Knowledge Check 3</span><span class="nav-check"></span></div>
+</div>
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;Defective Conditions</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="34"><span class="nav-item-num">35</span><span class="nav-item-title">Hazardous Conditions — Action</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="35"><span class="nav-item-num">36</span><span class="nav-item-title">Body &amp; Frame Defects</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="36"><span class="nav-item-num">37</span><span class="nav-item-title">Brake Rigging Defects</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="37"><span class="nav-item-num">38</span><span class="nav-item-title">Coupling &amp; Knuckle Defects</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="38"><span class="nav-item-num">39</span><span class="nav-item-title">Wheel &amp; Bearing Defects</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="39"><span class="nav-item-num">40</span><span class="nav-item-title">Load &amp; Door Defects</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="40"><span class="nav-item-num">41</span><span class="nav-item-title">Bad Order Cards</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="41"><span class="nav-item-num">42</span><span class="nav-item-title">Knowledge Check 4</span><span class="nav-check"></span></div>
+</div>
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;Exceptional Conditions</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="42"><span class="nav-item-num">43</span><span class="nav-item-title">Emergency Brake Applications</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="43"><span class="nav-item-num">44</span><span class="nav-item-title">CROR Rule 102</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="44"><span class="nav-item-num">45</span><span class="nav-item-title">Unusual Slack Action</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="45"><span class="nav-item-num">46</span><span class="nav-item-title">Knowledge Check 5</span><span class="nav-check"></span></div>
+</div>
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;Reporting &amp; Documentation</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="46"><span class="nav-item-num">47</span><span class="nav-item-title">Reporting to the RTC</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="47"><span class="nav-item-num">48</span><span class="nav-item-title">Additional Information Required</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="48"><span class="nav-item-num">49</span><span class="nav-item-title">Where Detectors Are Located</span><span class="nav-check"></span></div>
+</div>
+
+<div class="nav-toggle"><span class="toggle-arrow">&#9660;</span>&nbsp;Wrap-Up</div>
+<div class="nav-section-group">
+<div class="nav-item" data-idx="49"><span class="nav-item-num">50</span><span class="nav-item-title">Module Summary</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="50"><span class="nav-item-num">51</span><span class="nav-item-title">Pre-Exam Instructions</span><span class="nav-check"></span></div>
+<div class="nav-item" data-idx="51"><span class="nav-item-num">52</span><span class="nav-item-title">References</span><span class="nav-check"></span></div>
+</div>
+
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="content-wrap">
+
+<!-- ═══════════════════════════════════════════ PAGE 0 ═══ -->
+<div class="page" id="page-0">
+  <div class="page-section-badge">Introduction</div>
+  <h1 class="page-title">Module 5: Train Inspection and Detectors</h1>
+  <div class="page-meta"><span>&#128203; 52 pages</span><span>&#127891; BCIT Rail 1020</span></div>
+  <div class="page-divider"></div>
+
+  <div class="img-wrap" style="margin-bottom:20px">
+    <img src="media/image8.jpeg" alt="Wayside detection station" style="max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.12)">
+  </div>
+  <p class="img-caption">A train passes through a wayside inspection portal equipped with multiple detection systems.</p>
+
+  <p>Every train that moves on the railway carries potential hazards — overheated bearings, dragging equipment, flat wheels, and shifted loads. Detecting these problems before they become emergencies is a shared responsibility between train crews and the sophisticated network of <strong>Wayside Inspection Systems (WIS)</strong> installed along every major subdivision.</p>
+
+  <div class="card-row">
+    <div class="card accent-yellow"><div class="card-icon">&#128269;</div><div class="card-title">01 Inspection Types</div><p>Roll-by, pull-by, and running inspections</p></div>
+    <div class="card accent-blue"><div class="card-icon">&#128268;</div><div class="card-title">02 Wayside Systems</div><p>Hot box, hot wheel, WILD, dragging equipment</p></div>
+  </div>
+  <div class="card-row">
+    <div class="card accent-orange"><div class="card-icon">&#128226;</div><div class="card-title">03 Alarm Response</div><p>How to respond to every detector message</p></div>
+    <div class="card accent-red"><div class="card-icon">&#9888;</div><div class="card-title">04 Defective Conditions</div><p>Identifying and handling defects enroute</p></div>
+  </div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(0)" disabled>&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-0">1 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(1)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 1 ═══ -->
+<div class="page" id="page-1">
+  <div class="page-section-badge">Introduction</div>
+  <h1 class="page-title">Learning Objectives</h1>
+  <div class="page-divider"></div>
+  <p>By the end of this module, you will be able to:</p>
+  <ul class="step-list">
+    <li><p><strong>Describe the three types of moving train inspections</strong> — roll-by, pull-by, and running — and when each is performed.</p></li>
+    <li><p><strong>Identify every major wayside detection device</strong> — hot box, hot wheel, dragging equipment, WILD, derailment, and TADS — and explain what each detects.</p></li>
+    <li><p><strong>Respond correctly to WIS alarm messages</strong>, including hot box, hot wheel, multiple alarms, and "not working" notifications.</p></li>
+    <li><p><strong>Apply the Markal Thermomelt Heat Stik</strong> correctly and interpret the results.</p></li>
+    <li><p><strong>Identify defective conditions</strong> on equipment — body, brakes, couplings, wheels, and loads — and take appropriate action.</p></li>
+    <li><p><strong>Apply CROR Rule 102</strong> when a train stops due to an emergency brake application.</p></li>
+    <li><p><strong>Report a set-out</strong> with complete and accurate information to the RTC.</p></li>
+  </ul>
+  <div class="callout info">
+    <div class="callout-icon">&#128218;</div>
+    <div><p>Reference documents: CN GOI Section 5, CP GOI Section 5, CROR Rules 102 and 110, and federal <em>Rules Respecting the Inspection of Running Gear</em> (TC pub BI-5916).</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(0)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-1">2 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(2)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 2 ═══ -->
+<div class="page" id="page-2">
+  <div class="page-section-badge">The Human Factor</div>
+  <h1 class="page-title">You Are Still the Best Detector</h1>
+  <div class="page-divider"></div>
+
+  <div class="hero">
+    <div class="hero-icon">&#129489;&#8205;&#128295;</div>
+    <div class="hero-text">"The best detector on the railway is a well-trained crew member."</div>
+    <div class="hero-sub">Wayside systems are powerful — but they have blind spots. You do not.</div>
+  </div>
+
+  <p>The inspection of moving equipment, by other than mechanical means, requires the use of <strong>human senses</strong> and the application of employee experience, training, good judgment, and equipment knowledge.</p>
+  <p>Wayside systems measure specific physical parameters at fixed locations. A crew member performing a running inspection can detect:</p>
+  <div class="card-row">
+    <div class="card accent-blue"><div class="card-icon">&#128064;</div><div class="card-title">Visual cues</div><p>Leaning cars, dragging equipment, shifted loads, smoke, sparks</p></div>
+    <div class="card accent-orange"><div class="card-icon">&#128266;</div><div class="card-title">Auditory cues</div><p>Thumping flat wheels, squealing brakes, unusual metallic sounds</p></div>
+  </div>
+  <div class="takeaway">
+    <div class="takeaway-icon">&#128161;</div>
+    <div><p><strong>Key principle:</strong> Never assume the detectors have done your job. Your vigilance between detector sites may be the only thing standing between a minor defect and a major accident.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(1)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-2">3 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(3)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 3 ═══ -->
+<div class="page" id="page-3">
+  <div class="page-section-badge">The Human Factor</div>
+  <h1 class="page-title">Conductor's Responsibility</h1>
+  <div class="page-divider"></div>
+
+  <div class="definition">
+    <div class="definition-label">Rule</div>
+    <p><strong>Conductors are responsible to inspect the equipment in their trains as often as possible.</strong></p>
+  </div>
+
+  <p>This is not optional — it is a fundamental duty of every conductor on every trip. The obligation exists independent of whether wayside detectors are present on the subdivision.</p>
+
+  <h3>Who May Inspect?</h3>
+  <p>At locations where <strong>certified car inspectors are on duty</strong>, they perform the minimum equipment inspection. Where they are <strong>not on duty</strong>, members of the train and yard crew must perform inspections.</p>
+
+  <div class="callout warning">
+    <div class="callout-icon">&#9888;</div>
+    <div><p><strong>Common misconception:</strong> Inspections are NOT skipped when car inspectors are unavailable. The responsibility transfers to the crew.</p></div>
+  </div>
+
+  <h3>What Conductors Must Be Able to Do</h3>
+  <ul>
+    <li>Identify any defects or damage to equipment</li>
+    <li>Determine whether a repair can be made en route</li>
+    <li>Document and report all defects found</li>
+    <li>Take protective action when a hazardous condition is discovered</li>
+  </ul>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(2)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-3">4 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(4)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 4 ═══ -->
+<div class="page" id="page-4">
+  <div class="page-section-badge">The Human Factor</div>
+  <h1 class="page-title">The Cost of a Missed Defect</h1>
+  <div class="page-divider"></div>
+
+  <div class="two-col">
+    <div>
+      <img src="media/image17.png" alt="Train fire from overheated bearing" class="content-img">
+      <p class="img-caption">A hot box that went undetected eventually caused this fire.</p>
+    </div>
+    <div>
+      <img src="media/image18.jpeg" alt="Derailment scene" class="content-img">
+      <p class="img-caption">Dragging equipment that was not caught in time led to derailment.</p>
+    </div>
+  </div>
+
+  <p>Equipment defects that go undetected escalate rapidly. A sticking brake causes wheel overheating, which leads to thermal cracking. A dragging piece of brake rigging can catch in switch points and derail the train. An overloaded car can spread the rail.</p>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-number">&#128293;</div><div class="stat-label">Hot box → Fire</div></div>
+    <div class="stat-box"><div class="stat-number">&#128739;</div><div class="stat-label">Dragging equipment → Derailment</div></div>
+    <div class="stat-box"><div class="stat-number">&#9939;</div><div class="stat-label">Flat wheel → Track damage</div></div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-icon">&#128683;</div>
+    <div><p>Your knowledge of defects and their possible consequences can <strong>greatly reduce the potential for a serious accident.</strong></p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(3)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-4">5 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(5)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 5 ═══ -->
+<div class="page" id="page-5">
+  <div class="page-section-badge">Types of Inspection</div>
+  <h1 class="page-title">Overview of Inspection Types</h1>
+  <div class="page-divider"></div>
+
+  <p>There are <strong>three types of moving equipment inspections</strong>. Each is performed under different circumstances and serves a different purpose.</p>
+
+  <div class="card-row three">
+    <div class="card accent-yellow">
+      <div class="card-icon">&#128683;</div>
+      <div class="card-title">Roll-by / Pre-departure</div>
+      <p>Performed where cars are placed on a train. Also called a pre-departure inspection.</p>
+    </div>
+    <div class="card accent-blue">
+      <div class="card-icon">&#128664;</div>
+      <div class="card-title">Pull-by</div>
+      <p>Performed in the application of CROR Rule 110, at crew changes, and when passing another train.</p>
+    </div>
+    <div class="card accent-orange">
+      <div class="card-icon">&#128065;</div>
+      <div class="card-title">Running</div>
+      <p>Performed while the train is in motion. Crew looks back at the train from curves.</p>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon">&#128161;</div>
+    <div><p>Each type has specific rules about positioning, speed, and what to look for. The next several pages cover each in detail.</p></div>
+  </div>
+
+  <div class="takeaway">
+    <div class="takeaway-icon">&#128203;</div>
+    <div><p><strong>Remember:</strong> WIS detectors supplement — they do not replace — crew inspections. You are required to perform all applicable inspection types regardless of detector coverage.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(4)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-5">6 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(6)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 6 ═══ -->
+<div class="page" id="page-6">
+  <div class="page-section-badge">Types of Inspection</div>
+  <h1 class="page-title">Roll-by / Pre-departure Inspection</h1>
+  <div class="page-divider"></div>
+
+  <p>A <strong>roll-by inspection</strong> (also called a pre-departure inspection) is performed <strong>where cars are placed on a train</strong> — typically at a yard or station before departure.</p>
+
+  <h3>Purpose</h3>
+  <p>To confirm equipment is in acceptable condition before a movement begins. This is the last chance to identify defects at a slow speed before the train enters main line territory.</p>
+
+  <h3>What to Look For</h3>
+  <div class="card-row">
+    <div class="card">
+      <div class="card-title">&#128065; Visual Checks</div>
+      <ul style="font-size:.88rem;color:var(--gray-4);margin:8px 0 0 16px">
+        <li>Car body leaning or listing</li>
+        <li>Car body sagging downward</li>
+        <li>Objects dragging below car body</li>
+        <li>Objects extending from sides or ends</li>
+        <li>Doors open or improperly secured</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">&#9881; Mechanical Checks</div>
+      <ul style="font-size:.88rem;color:var(--gray-4);margin:8px 0 0 16px">
+        <li>Brake rigging condition</li>
+        <li>Coupler and knuckle condition</li>
+        <li>Wheel profile and flat spots</li>
+        <li>Roller bearing end caps</li>
+        <li>Side bearing condition</li>
+      </ul>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(5)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-6">7 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(7)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 7 ═══ -->
+<div class="page" id="page-7">
+  <div class="page-section-badge">Types of Inspection</div>
+  <h1 class="page-title">Pull-by Inspection</h1>
+  <div class="page-divider"></div>
+
+  <p>A <strong>pull-by inspection</strong> means the train is moving — being "pulled by" — while crew members or maintenance-of-way employees position themselves trackside to inspect the moving equipment.</p>
+
+  <h3>When Is It Required?</h3>
+  <ul>
+    <li>In the application of <strong>CROR Rule 110</strong></li>
+    <li>At <strong>passing trains</strong> — crews of both trains inspect each other</li>
+    <li>At scheduled <strong>crew change locations</strong></li>
+  </ul>
+
+  <h3>Positioning</h3>
+  <p>Position a crew member on <strong>each side</strong> of the train. Crew members must be close enough to see the equipment clearly but remain within a <strong>safe distance</strong> from the moving train at all times.</p>
+
+  <div class="callout warning">
+    <div class="callout-icon">&#9888;</div>
+    <div><p>Never position yourself closer than necessary. Side-swiping by protruding equipment or shifted loads has caused serious injuries.</p></div>
+  </div>
+
+  <h3>What to Look For</h3>
+  <p>Everything from the roll-by checklist, plus special attention to <strong>dragging equipment</strong>, smoking journals, sparks from wheels, and any load movement.</p>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(6)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-7">8 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(8)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 8 ═══ -->
+<div class="page" id="page-8">
+  <div class="page-section-badge">Types of Inspection</div>
+  <h1 class="page-title">Pull-by: Solo &amp; Speed Rules</h1>
+  <div class="page-divider"></div>
+
+  <div class="key-rule">
+    <div class="key-rule-label">Speed Limit</div>
+    <p>When performing a pull-by inspection, <strong>the movement must not exceed 15 mph (24 km/h).</strong></p>
+  </div>
+
+  <h3>Solo Pull-by Procedure</h3>
+  <p>If <strong>only one crew member</strong> is available to perform the inspection:</p>
+  <ul class="step-list">
+    <li><p><strong>Side 1:</strong> A pull-by inspection is performed on one side of the train.</p></li>
+    <li><p><strong>Side 2:</strong> A standing inspection is performed on the other side — inspecting from a fixed position as the train passes.</p></li>
+  </ul>
+
+  <div class="callout info">
+    <div class="callout-icon">&#128161;</div>
+    <div><p>A solo pull-by is less effective than a two-person inspection. Communicate any concerns you observed on the standing side to the RTC so that additional inspection can be arranged if needed.</p></div>
+  </div>
+
+  <h3>After the Inspection</h3>
+  <p>If a defect or concern is identified during the pull-by, stop the train and conduct a standing inspection of the affected car(s) before proceeding.</p>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(7)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-8">9 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(9)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 9 ═══ -->
+<div class="page" id="page-9">
+  <div class="page-section-badge">Types of Inspection</div>
+  <h1 class="page-title">Running Inspection</h1>
+  <div class="page-divider"></div>
+
+  <p>A <strong>running inspection</strong> is performed by the crew <strong>while the train is in motion</strong>. It is an ongoing process throughout the trip — not a single event.</p>
+
+  <h3>Technique: Looking Back on Curves</h3>
+  <p>Curves are the best opportunity to observe your own train. When rounding a curve, the locomotive crew can look back along the length of the train and observe:</p>
+  <ul>
+    <li>Smoke or fire from any location</li>
+    <li>Sparks from dragging equipment</li>
+    <li>Wheels that appear to be skidding rather than rolling</li>
+    <li>Cars that appear to be off-centre or leaning</li>
+    <li>Any material falling or trailing from the train</li>
+  </ul>
+
+  <h3>Use All Your Senses</h3>
+  <div class="card-row three">
+    <div class="card"><div class="card-icon">&#128064;</div><div class="card-title">See</div><p>Smoke, sparks, visual movement</p></div>
+    <div class="card"><div class="card-icon">&#128266;</div><div class="card-title">Hear</div><p>Thumping, squealing, scraping</p></div>
+    <div class="card"><div class="card-icon">&#128519;</div><div class="card-title">Smell</div><p>Burning rubber, hot metal, smoke</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(8)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-9">10 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(10)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 10 ═══ -->
+<div class="page" id="page-10">
+  <div class="page-section-badge">Types of Inspection</div>
+  <h1 class="page-title">Passenger Car Inspections</h1>
+  <div class="page-divider"></div>
+
+  <p>Many of the same inspection procedures used on freight equipment also apply to <strong>passenger cars</strong>. The stakes are higher — every car contains people.</p>
+
+  <h3>Defects Specific to Passenger Cars</h3>
+  <ul>
+    <li>Car body leaning or listing to the side</li>
+    <li>Car body sagging downward</li>
+    <li>Car body positioned improperly on the truck</li>
+    <li>Object dragging below the car body</li>
+    <li>Object extending from the side of the car body</li>
+    <li>Side door does not open or close, appears damaged or improperly secured</li>
+    <li>End door open, hanging, damaged, or improperly secured</li>
+    <li>Brake rigging that is damaged or dragging</li>
+    <li>Any component in contact with the rail, tie, or ballast</li>
+  </ul>
+
+  <div class="callout danger">
+    <div class="callout-icon">&#128683;</div>
+    <div><p>Any defect that could affect passenger safety must be acted upon immediately. Do not continue movement until the condition is corrected or the car is removed from service.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(9)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-10">11 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(11)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 11 ═══ -->
+<div class="page" id="page-11">
+  <div class="page-section-badge">Types of Inspection</div>
+  <h1 class="page-title">Knowledge Check 1</h1>
+  <div class="page-divider"></div>
+
+  <div class="quiz-box" data-correct="b">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 1 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">When performing a pull-by inspection, the movement must not exceed:</p>
+      <label class="quiz-option"><input type="radio" name="q1a" value="a"> 10 mph (16 km/h)</label>
+      <label class="quiz-option"><input type="radio" name="q1a" value="b"> 15 mph (24 km/h)</label>
+      <label class="quiz-option"><input type="radio" name="q1a" value="c"> 20 mph (32 km/h)</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! The pull-by speed limit is 15 mph (24 km/h)." data-wrong="Not quite. The prescribed maximum speed for a pull-by inspection is 15 mph."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="a">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 2 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">Who will perform a minimum equipment inspection at locations where certified car inspectors are NOT on duty?</p>
+      <label class="quiz-option"><input type="radio" name="q1b" value="a"> Members of train and yard crews</label>
+      <label class="quiz-option"><input type="radio" name="q1b" value="b"> The RTC must arrange for an inspector before the train moves</label>
+      <label class="quiz-option"><input type="radio" name="q1b" value="c"> Inspections are not required when car inspectors are not on duty</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! Members of train and yard crews perform the inspection when certified car inspectors are not on duty." data-wrong="Incorrect. The inspection responsibility falls to train and yard crew members — not the RTC, and the inspection is never skipped."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="c">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 3 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">If only one crew member is available for a pull-by inspection, what is the correct procedure?</p>
+      <label class="quiz-option"><input type="radio" name="q1c" value="a"> The inspection is deferred to the next detector site</label>
+      <label class="quiz-option"><input type="radio" name="q1c" value="b"> A full pull-by is done on both sides at half the normal speed</label>
+      <label class="quiz-option"><input type="radio" name="q1c" value="c"> A pull-by on one side and a standing inspection on the other side</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! With one crew member, you do a pull-by on one side and a standing inspection on the other." data-wrong="Incorrect. The solo procedure is: pull-by on one side, standing inspection on the other."></div>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(10)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-11">12 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(12)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 12 ═══ -->
+<div class="page" id="page-12">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">What Are Wayside Detection Systems?</h1>
+  <div class="page-divider"></div>
+
+  <p><strong>Wayside Inspection Systems (WIS)</strong> are technology systems placed at regular intervals along railway tracks that automatically scan passing trains for defects and hazardous conditions — without the train stopping.</p>
+
+  <div class="img-wrap">
+    <img src="media/image23.png" alt="Detector gantry site" style="max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.12)">
+    <p class="img-caption">A typical wayside detection installation showing detector housing and overhead gantry.</p>
+  </div>
+
+  <p>Most railways in Canada use these systems to facilitate the <strong>safe and efficient movement</strong> of trains. They are designed to detect or identify a range of potential hazardous conditions and notify crew members directly of their results.</p>
+
+  <div class="callout info">
+    <div class="callout-icon">&#128204;</div>
+    <div><p>The locations of Wayside Inspection Systems are indicated in the <strong>Time Table station column</strong> or separately in subdivision footnotes or special instructions. Always know where the detectors are on your subdivision.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(11)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-12">13 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(13)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 13 ═══ -->
+<div class="page" id="page-13">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">How WIS Notifies the Crew</h1>
+  <div class="page-divider"></div>
+
+  <p>When a defect or hazard is detected, the train crew may be notified through <strong>one or more</strong> of the following channels:</p>
+
+  <div class="card-row">
+    <div class="card accent-red"><div class="card-icon">&#128266;</div><div class="card-title">1. Alarm Tone over Radio</div><p>A distinctive tone is transmitted over the designated standby radio channel immediately upon detection.</p></div>
+    <div class="card accent-orange"><div class="card-icon">&#128172;</div><div class="card-title">2. Automated Talker Message</div><p>A computer-generated voice message follows the tone, identifying the detector location, type of defect, and axle number.</p></div>
+  </div>
+  <div class="card-row">
+    <div class="card accent-blue"><div class="card-icon">&#128308;</div><div class="card-title">3. Change in Signal Indication</div><p>At some sites, a defect detection will change the signal to stop the train before proceeding further.</p></div>
+    <div class="card accent-green"><div class="card-icon">&#128222;</div><div class="card-title">4. Instructions from the RTC</div><p>The Rail Traffic Controller monitors WIS data and may contact the crew directly with instructions or additional information.</p></div>
+  </div>
+
+  <div class="callout rule">
+    <div class="callout-icon">&#128204;</div>
+    <div><p><strong>Avoid using the designated radio standby channel</strong> while your train is passing over a detector. Other trains should also avoid the standby channel while a train in the vicinity is passing over a detector.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(12)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-13">14 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(14)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 14 ═══ -->
+<div class="page" id="page-14">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">What Is a Hot Box?</h1>
+  <div class="page-divider"></div>
+
+  <div class="two-col img-text">
+    <div>
+      <img src="media/image16.png" alt="Smoking overheated bearing" class="content-img">
+      <p class="img-caption">Smoke pouring from an overheated friction bearing — a classic hot box.</p>
+    </div>
+    <div>
+      <p>Older railway equipment wheels used a type of wheel bearing called a <strong>friction bearing</strong> (also called a <strong>plain bearing</strong>). These bearings were contained in a square box at the end of each axle.</p>
+      <p>When the lubrication in these boxes failed — due to overheating, contamination, or lack of maintenance — the metal-on-metal friction caused the box to become dangerously hot. This overheated bearing box was called a <strong>Hot Box</strong>.</p>
+      <p>It was a common occurrence for this type of bearing to <strong>catch fire and burn</strong>, potentially destroying the car and adjacent cars, igniting cargo, and causing derailments.</p>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-icon">&#128293;</div>
+    <div><p>Although modern railways have largely replaced friction bearings with roller bearings, <strong>roller bearings can also overheat</strong> — and are now what hot box detectors are primarily designed to find.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(13)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-14">15 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(15)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 15 ═══ -->
+<div class="page" id="page-15">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">Roller Bearings &amp; Journals</h1>
+  <div class="page-divider"></div>
+
+  <div class="two-col text-img">
+    <div>
+      <p>A <strong>journal</strong> is the general term for a wheel bearing assembly on a railway car axle. Modern freight and passenger equipment uses <strong>roller bearings</strong> — which are far more reliable than the old friction bearings — but they are not failure-proof.</p>
+      <h3>Why Roller Bearings Fail</h3>
+      <ul>
+        <li>Contamination by water, dirt, or debris</li>
+        <li>Loss of lubricant (grease degradation)</li>
+        <li>Impact damage from flat wheels</li>
+        <li>Missing or loose end bolts</li>
+        <li>Overloading beyond rated capacity</li>
+        <li>Manufacturing defects</li>
+      </ul>
+    </div>
+    <div>
+      <img src="media/image14.png" alt="Roller bearing journal box" class="content-img">
+      <p class="img-caption">Roller bearing end cap on a freight car axle.</p>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-icon">&#9888;</div>
+    <div><p>When inspecting a suspected hot journal, <strong>never touch the bearing or adapter with bare hands</strong>. Use a proper temperature measuring device (Markal Heat Stik). Temperatures can exceed 200°C.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(14)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-15">16 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(16)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 16 ═══ -->
+<div class="page" id="page-16">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">Hot Box Detectors</h1>
+  <div class="page-divider"></div>
+
+  <div class="two-col img-text">
+    <div>
+      <img src="media/image12.png" alt="Hot box detector at track level" class="content-img">
+      <p class="img-caption">A hot box detector scanner mounted at track level, positioned to scan the underside of passing wheel assemblies.</p>
+    </div>
+    <div>
+      <div class="definition">
+        <div class="definition-label">Definition</div>
+        <p>A <strong>Hot Box Detector (HBD)</strong> measures the temperature difference between the outside air temperature and the heat radiated from the journal box as each axle passes over the sensor.</p>
+      </div>
+      <p>HBDs are installed at track level, typically between the rails or adjacent to them. As a train passes, the scanner records an infrared heat signature from every axle journal — both north (left) and south (right) sides.</p>
+      <p>Hot box alarms can also detect <strong>overheated traction motor suspension bearings</strong> and <strong>sticking brakes</strong>.</p>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(15)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-16">17 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(17)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PAGE 17 ═══ -->
+<div class="page" id="page-17">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">Hot Wheel Detectors</h1>
+  <div class="page-divider"></div>
+
+  <div class="two-col img-text">
+    <div>
+      <img src="media/image19.png" alt="Hot wheel with smoke" class="content-img">
+      <p class="img-caption">Smoke from a sticking brake — exactly what hot wheel detectors are designed to catch.</p>
+    </div>
+    <div>
+      <div class="definition">
+        <div class="definition-label">Definition</div>
+        <p>A <strong>Hot Wheel Detector (HWD)</strong> measures the temperature difference between the outside air and the heat radiated from the <em>wheel rim</em> — not the bearing.</p>
+      </div>
+      <p>HWDs are used to detect:</p>
+      <ul>
+        <li><strong>Sticking or dragging brakes</strong> — a brake shoe that fails to release generates intense wheel heat</li>
+        <li><strong>Hand brakes left applied</strong> — a common cause of wheel damage and fire</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon">&#128268;</div>
+    <div><p><strong>Combined detectors:</strong> Hot Box and Hot Wheel detectors are frequently combined in a single installation. The talker will specify which type of alarm was triggered.</p></div>
+  </div>
+
+  <p>The talker uses a <strong>single tone</strong> for hot wheel alarms, and a <strong>double tone</strong> for hot box and dragging equipment alarms — so crew members can immediately know the type of defect before the voice message.</p>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(16)">&#8592; Previous</button>
+    <span class="page-nav-center" id="page-indicator-17">18 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(18)">Next &#8594;</button>
+  </div>
+</div>
+
+
+<!-- ═══ PAGE 18 ═══ -->
+<div class="page" id="page-18">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">Dragging Equipment Detectors</h1>
+  <div class="page-divider"></div>
+  <div class="two-col img-text">
+    <div>
+      <img src="media/image13.png" alt="Dragging equipment under freight car" class="content-img">
+      <p class="img-caption">Brake rigging hanging below a car — a dragging equipment hazard.</p>
+    </div>
+    <div>
+      <div class="definition">
+        <div class="definition-label">Definition</div>
+        <p>A <strong>Dragging Equipment Detector (DED)</strong> monitors equipment or lading defects that are dragging along the ground in close proximity to the rail.</p>
+      </div>
+      <p>When a train passes over the detector, any equipment hanging below the normal clearance level strikes the detector paddle and triggers an alarm with a <strong>double tone</strong> and talker message identifying the axle location.</p>
+    </div>
+  </div>
+  <h3>What Causes Dragging Equipment?</h3>
+  <div class="card-row">
+    <div class="card accent-red"><div class="card-title">&#9881; Mechanical Failures</div><p>Brake rigging that has come loose, broken hanger rods, dropped brake shoes, broken draw bars.</p></div>
+    <div class="card accent-orange"><div class="card-title">&#128666; Load Issues</div><p>Strapping, chains, tarps, or cargo that has come unsecured and is dragging below car level.</p></div>
+  </div>
+  <div class="callout warning">
+    <div class="callout-icon">&#9888;</div>
+    <div><p>Trains operating on <strong>adjacent main tracks</strong> approaching a detector that is broadcasting a dragging equipment alarm must <strong>stop immediately</strong> using a split service reduction — unless it can be confirmed their movement will not be affected.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(17)">&#8592; Previous</button>
+    <span class="page-nav-center">19 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(19)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 19 ═══ -->
+<div class="page" id="page-19">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">Wheel Impact Load Detectors (WILD)</h1>
+  <div class="page-divider"></div>
+  <div class="two-col img-text">
+    <div>
+      <img src="media/image21.png" alt="WILD sensors on track" class="content-img">
+      <p class="img-caption">Yellow WILD sensor assemblies installed between the rails at track level.</p>
+    </div>
+    <div>
+      <div class="definition">
+        <div class="definition-label">Definition</div>
+        <p>A <strong>Wheel Impact Load Detector (WILD)</strong> — also known as a Flat Wheel Detector — senses excessive wheel impacts transmitted through the rail, caused by flat or worn spots on wheels.</p>
+      </div>
+      <p>WILDs use <strong>strain-gauge technology</strong> built into special rail sections to measure the dynamic impact force of every wheel as it rolls through the site. Normal wheels roll smoothly; a flat spot creates a characteristic spike in impact force.</p>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card accent-blue">
+      <div class="card-title">&#128200; Dynamic Measurement</div>
+      <p>WILDs measure performance in motion — giving more information about a wheel's condition than a static visual inspection.</p>
+    </div>
+    <div class="card accent-yellow">
+      <div class="card-title">&#128683; Defect Threshold</div>
+      <p>A flat spot <strong>2½ inches or more</strong> in length, or two adjoining spots each <strong>1 to 2 inches</strong> in length, is considered defective.</p>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(18)">&#8592; Previous</button>
+    <span class="page-nav-center">20 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(20)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 20 ═══ -->
+<div class="page" id="page-20">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">Derailment &amp; Truck Performance Detectors</h1>
+  <div class="page-divider"></div>
+  <h3>Derailment Detectors (DD)</h3>
+  <p>Similar to a dragging equipment detector in function. Two types:</p>
+  <div class="card-row">
+    <div class="card accent-red"><div class="card-title">&#127981; Brittle Bar</div><p>Bars fixed to railway ties that break when struck by derailed equipment. Triggers continuous talker alarm. No axle count provided.</p></div>
+    <div class="card accent-orange"><div class="card-title">&#129335; Paddle Style</div><p>Installed lower than DED paddles. Only communicates alarm conditions with axle count. Sends train tape to office.</p></div>
+  </div>
+  <h3>Lateral Rail Movement Detectors (LRMD)</h3>
+  <p>Detects excessive lateral (sideways) force on the rails — caused by: car body positioned improperly on the truck, sagging car body, uneven or shifted load, or broken truck components (side frame, springs).</p>
+  <h3>Truck Performance Detectors (TPD)</h3>
+  <p>Built into S-curves to monitor truck performance. Uses strain-gauge technology similar to WILD, measuring lateral and vertical forces as cars navigate the curve.</p>
+  <div class="callout info">
+    <div class="callout-icon">&#128268;</div>
+    <div><p>In many cases, a dragging equipment detector will serve the same protective purpose as a derailment detector.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(19)">&#8592; Previous</button>
+    <span class="page-nav-center">21 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(21)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 21 ═══ -->
+<div class="page" id="page-21">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">Advanced Technologies</h1>
+  <div class="page-divider"></div>
+  <div class="two-col img-text">
+    <div>
+      <img src="media/image24.jpeg" alt="Full train imaging inspection system" class="content-img">
+      <p class="img-caption">A full train imaging and measurement system scans every car in real time.</p>
+    </div>
+    <div>
+      <p>Modern railways integrate multiple detection technologies into intelligent systems that go far beyond simple alarm thresholds.</p>
+    </div>
+  </div>
+  <div class="card-row">
+    <div class="card accent-blue"><div class="card-icon">&#127908;</div><div class="card-title">TADS — Trackside Acoustic Detection</div><p>Monitors sounds emitted by wheel bearings as they pass. Failing bearings produce a unique acoustic signature detectable before visible damage occurs.</p></div>
+    <div class="card accent-green"><div class="card-icon">&#9878;</div><div class="card-title">Weigh-In-Motion (WIM) Scales</div><p>Determines if rail cars are overloaded or unbalanced at line speed — preventing derailments and extending the life of track and equipment.</p></div>
+  </div>
+  <div class="card-row">
+    <div class="card accent-yellow"><div class="card-icon">&#129504;</div><div class="card-title">AI-Integrated Detection</div><p>Many railways now use artificial intelligence to correlate data from multiple detector types to predict and warn of potential problems before they become critical.</p></div>
+    <div class="card accent-orange"><div class="card-icon">&#128247;</div><div class="card-title">Dimensional Load Detectors</div><p>Located at entrances to tunnels and restricted-clearance points. Triggers alarm when a car or load exceeds maximum width or height.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(20)">&#8592; Previous</button>
+    <span class="page-nav-center">22 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(22)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 22 ═══ -->
+<div class="page" id="page-22">
+  <div class="page-section-badge">Wayside Detection Systems</div>
+  <h1 class="page-title">Knowledge Check 2</h1>
+  <div class="page-divider"></div>
+
+  <div class="quiz-box" data-correct="b">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 1 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">Which type of detector measures impact loads from flat or worn wheel spots?</p>
+      <label class="quiz-option"><input type="radio" name="q2a" value="a"> Hot Box Detector (HBD)</label>
+      <label class="quiz-option"><input type="radio" name="q2a" value="b"> Wheel Impact Load Detector (WILD)</label>
+      <label class="quiz-option"><input type="radio" name="q2a" value="c"> Lateral Rail Movement Detector (LRMD)</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! WILD detectors sense excessive wheel impacts caused by flat or worn wheel spots." data-wrong="Incorrect. WILDs (Wheel Impact Load Detectors) measure impacts from flat spots. HBDs measure bearing heat."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="c">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 2 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">Where will the location of Hot Box and Dragging Equipment Detectors be indicated?</p>
+      <label class="quiz-option"><input type="radio" name="q2b" value="a"> In operating bulletins only</label>
+      <label class="quiz-option"><input type="radio" name="q2b" value="b"> In the General Operating Instructions only</label>
+      <label class="quiz-option"><input type="radio" name="q2b" value="c"> In the time table and operating bulletins</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! Detector locations are indicated in both the time table AND operating bulletins." data-wrong="Not quite. Detector locations are found in both the time table AND operating bulletins."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="a">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 3 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">A TADS (Trackside Acoustic Detection System) detects defects by:</p>
+      <label class="quiz-option"><input type="radio" name="q2c" value="a"> Monitoring sounds emitted by wheel bearings as they pass</label>
+      <label class="quiz-option"><input type="radio" name="q2c" value="b"> Measuring infrared heat from journal boxes</label>
+      <label class="quiz-option"><input type="radio" name="q2c" value="c"> Weighing each axle load dynamically</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! TADS monitors the acoustic signature of passing wheel bearings — failing bearings produce a unique sound." data-wrong="Incorrect. TADS uses sound — acoustic signatures of bearing failure — not heat or weight."></div>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(21)">&#8592; Previous</button>
+    <span class="page-nav-center">23 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(23)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 23 ═══ -->
+<div class="page" id="page-23">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">Monitoring Radio Channels</h1>
+  <div class="page-divider"></div>
+  <div class="key-rule">
+    <div class="key-rule-label">Fundamental Requirement</div>
+    <p>Train crews are responsible to monitor radio channels and/or any other system that may be used to convey a WIS message. <strong>Crews must respond immediately to the notification as it is received.</strong></p>
+  </div>
+  <h3>Why Immediate Response Matters</h3>
+  <p>A hot box alarm indicates a bearing that may be within minutes of catastrophic failure. A dragging equipment alarm may indicate hardware about to derail the train at the next switch. Every second of delayed response increases risk.</p>
+  <h3>Talker Message Timing</h3>
+  <p>Messages from the talker should be heard <strong>within 45 seconds</strong> after the entire train has passed over the detector. If no message is received after the entire train has passed, the crew should consider the detector to be <strong>malfunctioning</strong>.</p>
+  <div class="callout warning">
+    <div class="callout-icon">&#128266;</div>
+    <div><p>Do not use the designated radio standby channel while your train is passing over a detector. You may block the alarm transmission intended for your own train or another nearby train.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(22)">&#8592; Previous</button>
+    <span class="page-nav-center">24 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(24)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 24 ═══ -->
+<div class="page" id="page-24">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">"No Alarm" Message</h1>
+  <div class="page-divider"></div>
+  <p>When the entire train has passed with no defects detected, the talker broadcasts a <strong>"No Alarm"</strong> message. This is good news — but it is not a green light to stop paying attention.</p>
+  <div class="alarm-card noalarm">
+    <div class="alarm-label">&#128308; Talker — Full No Alarm Message</div>
+    <div class="msg-box">"[Company] detector [Subdivision] Sub, mile 12. No alarm... Minus 10... Five-Four-Six... Four-Two..."</div>
+    <p><strong>Action: None required.</strong> Continue normal operation.</p>
+  </div>
+  <h3>Reading the No Alarm Data</h3>
+  <table class="data-table">
+    <thead><tr><th>Number in Message</th><th>What It Means</th></tr></thead>
+    <tbody>
+      <tr><td>Minus 10</td><td>Outside ambient temperature (–10°C in this example)</td></tr>
+      <tr><td>Five-Four-Six (546)</td><td>Number of axles detected (may vary by ±1)</td></tr>
+      <tr><td>Four-Two (42)</td><td>Speed (mph) when train entered the site</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info">
+    <div class="callout-icon">&#128161;</div>
+    <div><p>At some sites an <strong>abbreviated "No Alarm"</strong> message is used: <em>"(mileage) — No alarm."</em> If a defect is present or the detector is malfunctioning, the complete message will be provided instead.</p></div>
+  </div>
+  <div class="callout warning">
+    <div class="callout-icon">&#9888;</div>
+    <div><p>A crew can receive a "No Alarm" message and <strong>still receive instructions from the RTC to stop and inspect</strong>. Always follow RTC instructions — the RTC has additional data from the office system.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(23)">&#8592; Previous</button>
+    <span class="page-nav-center">25 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(25)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 25 ═══ -->
+<div class="page" id="page-25">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">Hot Wheel Alarm — Response</h1>
+  <div class="page-divider"></div>
+  <div class="alarm-card hotwheel">
+    <div class="alarm-label">&#128308; Sample Talker Message — Hot Wheel</div>
+    <div class="msg-box">"[Company] detector [Sub Name] Sub, mile 12. HOT WHEEL, Axle 86, North side. Repeat, HOT WHEEL, Axle 86, North side."</div>
+  </div>
+  <h3>Required Response — Step by Step</h3>
+  <ul class="step-list">
+    <li><p><strong>Commence a controlled stop</strong> using a split service reduction immediately upon receipt of the alarm.</p></li>
+    <li><p><strong>A pull-by of no more than 10 mph</strong> may be made — up to the point indicated in the talker message — if there is no sign of a derailment. The pull-by must NOT be made over a switch in a facing-point direction.</p></li>
+    <li><p><strong>A crew member inspects all wheels</strong> on the suspect car.</p></li>
+    <li><p><strong>Confirm the car number</strong> with the RTC.</p></li>
+    <li><p><strong>Inspect all wheels</strong> on the identified car. If all appear normal, inspect at least <strong>12 axles ahead and behind</strong> the identified car.</p></li>
+    <li><p><strong>Check axle bearing and wheel integrity</strong> on both sides before returning to the head end.</p></li>
+  </ul>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(24)">&#8592; Previous</button>
+    <span class="page-nav-center">26 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(26)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 26 ═══ -->
+<div class="page" id="page-26">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">Hot Box Alarm — Response</h1>
+  <div class="page-divider"></div>
+  <div class="alarm-card hotbox">
+    <div class="alarm-label">&#128308; Sample Talker Message — Hot Box</div>
+    <div class="msg-box">"[Company] detector [Sub Name] Sub, mile 12. HOT BOX, Axle 86, North side. Repeat, HOT BOX, Axle 86, North side."</div>
+  </div>
+  <div class="callout rule">
+    <div class="callout-icon">&#128204;</div>
+    <div><p>The Hot Box alarm response follows the <strong>same procedure as the Hot Wheel alarm</strong> — with one critical addition: the suspected car's journal must be checked using a <strong>Markal Thermomelt Heat Stik.</strong></p></div>
+  </div>
+  <h3>Key Differences from Hot Wheel Response</h3>
+  <table class="data-table">
+    <thead><tr><th>Step</th><th>Hot Wheel</th><th>Hot Box</th></tr></thead>
+    <tbody>
+      <tr><td>Stop &amp; pull-by procedure</td><td>&#10003; Same</td><td>&#10003; Same</td></tr>
+      <tr><td>Inspect 12 axles each side</td><td>&#10003; Same</td><td>&#10003; Same</td></tr>
+      <tr class="highlight"><td>Apply Markal Heat Stik to journal</td><td>&#10005; Not required</td><td>&#9888; <strong>Required</strong></td></tr>
+      <tr><td>Confirm car number with RTC</td><td>&#10003; Same</td><td>&#10003; Same</td></tr>
+    </tbody>
+  </table>
+  <div class="callout danger">
+    <div class="callout-icon">&#128683;</div>
+    <div><p>Never touch the journal or adapter with bare hands when inspecting a hot box alarm. Use only approved temperature-measuring devices.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(25)">&#8592; Previous</button>
+    <span class="page-nav-center">27 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(27)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 27 ═══ -->
+<div class="page" id="page-27">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">The Markal Thermomelt Heat Stik</h1>
+  <div class="page-divider"></div>
+  <div class="two-col text-img">
+    <div>
+      <div class="definition">
+        <div class="definition-label">Definition</div>
+        <p>Markal Thermomelt Heat Stiks are <strong>temperature-indicating crayons</strong> that melt when the temperature of the surface they are applied to reaches the crayon's designated melting point.</p>
+      </div>
+      <h3>The Correct Crayon for Freight</h3>
+      <div class="key-rule">
+        <div class="key-rule-label">Required Specification</div>
+        <p>The prescribed crayon for freight roller bearings melts at <strong>93°C / 200°F.</strong></p>
+      </div>
+      <p>If the crayon melts — leaving a wax-like shiny smear — the bearing temperature exceeds 93°C and the <strong>car must be set out immediately.</strong></p>
+    </div>
+    <div>
+      <img src="media/image25.png" alt="Markal Thermomelt Heat Stik" class="content-img">
+      <p class="img-caption">A Markal Thermomelt Heat Stik — standard equipment for every conductor.</p>
+    </div>
+  </div>
+  <div class="callout warning">
+    <div class="callout-icon">&#9888;</div>
+    <div><p>If the Heat Stik does <em>not</em> melt, this confirms the bearing is below threshold. However, the inspector must still report results to the RTC and continue to monitor. A bearing can still deteriorate further down the line.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(26)">&#8592; Previous</button>
+    <span class="page-nav-center">28 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(28)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 28 ═══ -->
+<div class="page" id="page-28">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">Applying the Heat Stik</h1>
+  <div class="page-divider"></div>
+  <div class="two-col img-text">
+    <div>
+      <img src="media/image15.png" alt="Roller bearing end cap diagram" class="content-img">
+      <p class="img-caption">The correct application points on a roller bearing assembly.</p>
+    </div>
+    <div>
+      <h3>Step-by-Step Application</h3>
+      <ul class="step-list">
+        <li><p><strong>Locate the bearing:</strong> Identify the axle specified by the talker message. Count from the front of the train.</p></li>
+        <li><p><strong>Apply to the outer ring cup (bearing sleeve):</strong> Make a marking on the outside of the bearing cup. This is the <em>primary test point.</em></p></li>
+        <li><p><strong>Apply to the roller bearing end cap:</strong> Make a second marking on the end cap as an indication the bearing has been inspected.</p></li>
+        <li><p><strong>Interpret the result:</strong> If the marking melts (shiny wax smear) — set out the car. If it does not melt — report results to RTC and continue with caution.</p></li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout danger">
+    <div class="callout-icon">&#128683;</div>
+    <div><p>Do NOT apply to the adapter. Do NOT apply to the face of the axle end. The correct location is the <strong>face or side of the outer ring cup or sleeve.</strong></p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(27)">&#8592; Previous</button>
+    <span class="page-nav-center">29 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(29)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 29 ═══ -->
+<div class="page" id="page-29">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">Multiple Alarms</h1>
+  <div class="page-divider"></div>
+  <div class="alarm-card hotbox">
+    <div class="alarm-label">&#128308; Talker — Multiple Alarms Message</div>
+    <div class="msg-box">"CN detector [mileage] Multiple alarms, repeat, multiple alarms."</div>
+  </div>
+  <div class="alarm-card hotwheel">
+    <div class="alarm-label">&#128308; Talker — Multiple Hot Wheels Message</div>
+    <div class="msg-box">"CN detector [mileage] Hot wheels multiple alarms, repeat, hot wheels multiple alarms."</div>
+  </div>
+  <h3>How Multiple Alarms Are Transmitted</h3>
+  <p>If there are multiple defects on the same train, the talker transmits the applicable tone and message <strong>every time a defect is detected</strong> as the train passes. The final message will say "Multiple Alarms" — the axle number will NOT be included in the final summary.</p>
+  <h3>Required Action</h3>
+  <ul class="step-list">
+    <li><p><strong>Stop the train</strong> immediately using a split service reduction.</p></li>
+    <li><p><strong>Contact the RTC</strong> to determine the nature and location of each defect.</p></li>
+    <li><p>If <strong>unable to contact the RTC</strong>, perform a standing inspection of the <em>entire train.</em></p></li>
+  </ul>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(28)">&#8592; Previous</button>
+    <span class="page-nav-center">30 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(30)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 30 ═══ -->
+<div class="page" id="page-30">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">Dragging Equipment Response</h1>
+  <div class="page-divider"></div>
+  <div class="alarm-card drag">
+    <div class="alarm-label">&#128308; Talker — Dragging Equipment Message</div>
+    <div class="msg-box">"[Company] detector [Sub] Sub, mile 12. DRAGGING EQUIPMENT, Axle 42. Repeat, DRAGGING EQUIPMENT, Axle 42."</div>
+  </div>
+  <h3>Required Response</h3>
+  <ul class="step-list">
+    <li><p><strong>Stop immediately</strong> using a split service reduction. Dragging equipment can derail at a switch at any moment.</p></li>
+    <li><p><strong>Inspect the car identified</strong> plus at least <strong>12 axles ahead and behind</strong> the identified car.</p></li>
+    <li><p><strong>Identify and secure</strong> any component that is hanging, dragging, or otherwise outside normal clearance.</p></li>
+    <li><p><strong>Report to the RTC</strong> and await instructions before proceeding.</p></li>
+  </ul>
+  <div class="callout danger">
+    <div class="callout-icon">&#128683;</div>
+    <div><p>If the train is stopped with equipment suspected to be dragging, do not move the train until the defect is confirmed to have been identified and either secured or the car set out.</p></div>
+  </div>
+  <div class="callout info">
+    <div class="callout-icon">&#128161;</div>
+    <div><p>When a train stops before the entire movement has passed the detector, the front and rear portions are treated as <strong>two separate trains</strong> — separate messages will be received for each portion.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(29)">&#8592; Previous</button>
+    <span class="page-nav-center">31 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(31)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 31 ═══ -->
+<div class="page" id="page-31">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">WIS Malfunctions</h1>
+  <div class="page-divider"></div>
+  <p>There are several ways a Wayside Inspection System may malfunction. The required response depends on the type of failure.</p>
+  <table class="data-table">
+    <thead><tr><th>Condition</th><th>Required Action</th></tr></thead>
+    <tbody>
+      <tr><td><strong>"NOT WORKING" with alarm message</strong></td><td>Stop immediately. Contact RTC. If RTC unreachable, perform standing inspection of entire train.</td></tr>
+      <tr><td><strong>No message received</strong> after train passes (45-sec rule)</td><td>Treat detector as malfunctioning. Governed by malfunction rules.</td></tr>
+      <tr><td><strong>WIS out of service by General Bulletin Order (GBO)</strong></td><td>Follow specific instructions in the GBO. Advise RTC.</td></tr>
+      <tr><td><strong>Partial failure</strong></td><td>Governed by instructions in the GBO or from RTC.</td></tr>
+      <tr><td><strong>Two or more HBDs not working</strong></td><td>Speed restriction may apply — consult GBO and RTC instructions.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout rule">
+    <div class="callout-icon">&#128204;</div>
+    <div><p>When a talker indicates a defect while a train is passing <strong>at 5 mph or less</strong>, the axle count in the message may be incorrect. In this case, a <strong>standing inspection of the entire train</strong> must be performed after stopping.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(30)">&#8592; Previous</button>
+    <span class="page-nav-center">32 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(32)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 32 ═══ -->
+<div class="page" id="page-32">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">Video: Changing a Brake Shoe</h1>
+  <div class="page-divider"></div>
+  <p>Brake shoes are a critical component inspected during every equipment check. A missing, broken, or worn-out brake shoe key can cause the shoe to dislodge — creating a dangerous dragging equipment hazard.</p>
+  <p>This video demonstrates the process of changing a brake shoe — helping you understand the component you'll be inspecting, the failure modes to watch for, and the level of mechanical work involved in a road repair.</p>
+  <video controls class="video-local" style="width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.12)">
+    <source src="Changing%20a%20Brake%20Shoe.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <h3>Key Inspection Points — Brake Shoes</h3>
+  <div class="card-row">
+    <div class="card accent-red"><div class="card-title">&#9888; Brake Shoe Keys</div><p>A dislodged or missing brake shoe key is a defect. Move the car carefully to the first available location where it can be set off.</p></div>
+    <div class="card accent-orange"><div class="card-title">&#9881; Brake Rigging Down</div><p>Complete brake rigging down requires the car to be set off. Wiring it temporarily to the frame is NOT an acceptable permanent repair.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(31)">&#8592; Previous</button>
+    <span class="page-nav-center">33 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(33)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 33 ═══ -->
+<div class="page" id="page-33">
+  <div class="page-section-badge">Alarm Response</div>
+  <h1 class="page-title">Knowledge Check 3</h1>
+  <div class="page-divider"></div>
+
+  <div class="quiz-box" data-correct="c">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 1 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">Which type of Thermomelt Heat Stik is prescribed for use on any suspected freight journal?</p>
+      <label class="quiz-option"><input type="radio" name="q3a" value="a"> 103°C / 219°F</label>
+      <label class="quiz-option"><input type="radio" name="q3a" value="b"> 121°C / 250°F</label>
+      <label class="quiz-option"><input type="radio" name="q3a" value="c"> 93°C / 200°F</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! The 93°C / 200°F Heat Stik is the prescribed crayon for freight roller bearings." data-wrong="Incorrect. The correct crayon for freight journals melts at 93°C / 200°F."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="b">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 2 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">Where should the temperature measuring device be applied on a freight roller bearing to test for overheating?</p>
+      <label class="quiz-option"><input type="radio" name="q3b" value="a"> To the adapter</label>
+      <label class="quiz-option"><input type="radio" name="q3b" value="b"> To the face or side of the outer ring cup or sleeve</label>
+      <label class="quiz-option"><input type="radio" name="q3b" value="c"> To the face or side of the roller bearing end cap only</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! Apply to the face or side of the outer ring cup (bearing sleeve). The end cap gets a second marking as proof of inspection." data-wrong="Incorrect. The primary test point is the face or side of the outer ring cup or sleeve — not the adapter."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="a">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 3 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">Could a crew receive a "NO ALARM" message and later receive instructions from the RTC to stop and inspect?</p>
+      <label class="quiz-option"><input type="radio" name="q3c" value="a"> Yes — the crew will be governed by instructions received from the RTC</label>
+      <label class="quiz-option"><input type="radio" name="q3c" value="b"> No — a "No Alarm" message means no inspection is needed</label>
+      <label class="quiz-option"><input type="radio" name="q3c" value="c"> Only if the detector was flagged as malfunctioning</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! The RTC has additional data. A 'No Alarm' talker message does not override RTC instructions to inspect." data-wrong="Incorrect. The RTC has access to more detailed data than the talker message. Always follow RTC instructions."></div>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(32)">&#8592; Previous</button>
+    <span class="page-nav-center">34 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(34)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 34 ═══ -->
+<div class="page" id="page-34">
+  <div class="page-section-badge">Defective Conditions</div>
+  <h1 class="page-title">Hazardous Conditions — Taking Action</h1>
+  <div class="page-divider"></div>
+  <div class="definition">
+    <div class="definition-label">Rule</div>
+    <p>When an inspection reveals a hazardous condition that may affect safe operation, the qualified person in charge of the train shall take <strong>appropriate action to eliminate potential danger.</strong></p>
+  </div>
+  <h3>Four Options — in Order of Preference</h3>
+  <div class="golden-rule"><div class="golden-rule-num">1</div><p><strong>Correct the condition</strong> — if a safe road repair is possible, make it immediately.</p></div>
+  <div class="golden-rule"><div class="golden-rule-num">2</div><p><strong>Reduce speed</strong> — if the defect does not require immediate set-out, reduce speed and proceed to the first location where repair is possible.</p></div>
+  <div class="golden-rule"><div class="golden-rule-num">3</div><p><strong>Remove the defective car</strong> — set the car out and report the defect to the RTC.</p></div>
+  <div class="golden-rule"><div class="golden-rule-num">4</div><p><strong>Take such other action as is necessary</strong> — apply judgment to ensure continued safe operation.</p></div>
+  <div class="callout info">
+    <div class="callout-icon">&#128161;</div>
+    <div><p>Your knowledge of defects and their consequences is what allows you to make the right call. The next pages cover specific defects and the required actions for each.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(33)">&#8592; Previous</button>
+    <span class="page-nav-center">35 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(35)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 35 ═══ -->
+<div class="page" id="page-35">
+  <div class="page-section-badge">Defective Conditions</div>
+  <h1 class="page-title">Body &amp; Frame Defects</h1>
+  <div class="page-divider"></div>
+  <table class="data-table">
+    <thead><tr><th>Defect Observed</th><th>Possible Cause</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>Car leaning or listing to the side</td><td>Twisted centre sill; missing or broken side bearing</td><td>Inspect centre plates and side bearings; set out if confirmed</td></tr>
+      <tr><td>Car sagging downward</td><td>Broken centre sill; broken bolster</td><td>Set out immediately</td></tr>
+      <tr><td>Car off-centre on truck</td><td>Centre plate out of bolster casting</td><td>Check underside over each truck; set out if confirmed</td></tr>
+      <tr><td>HIGH/LOW coupler condition</td><td>Broken or missing components causing height mismatch</td><td>Investigate both cars; may indicate structural failure</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warning">
+    <div class="callout-icon">&#9888;</div>
+    <div><p>If in doubt, take the safe course — <strong>place a bad order tag on the car</strong> and set it out at the first available location. Do not rely on "it looks okay" for structural defects.</p></div>
+  </div>
+  <h3>Side Bearings</h3>
+  <p>Side bearings support the car body on the truck bolster and control rocking motion. A missing or broken side bearing is a serious structural defect that can cause the car body to shift laterally during transit, potentially fouling clearances or derailing.</p>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(34)">&#8592; Previous</button>
+    <span class="page-nav-center">36 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(36)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 36 ═══ -->
+<div class="page" id="page-36">
+  <div class="page-section-badge">Defective Conditions</div>
+  <h1 class="page-title">Brake Rigging Defects</h1>
+  <div class="page-divider"></div>
+  <div class="card-row">
+    <div class="card accent-red">
+      <div class="card-title">&#9888; Complete Brake Rigging Down</div>
+      <p><strong>Action:</strong> The train may proceed carefully to the first location where the car can be set off. The rigging must NOT simply be wired up and left — the car must be set out for proper repair.</p>
+    </div>
+    <div class="card accent-orange">
+      <div class="card-title">&#128736; Missing or Dislodged Brake Shoe Key</div>
+      <p><strong>Action:</strong> Move the car carefully to the first available location where the car can be set off. A missing key means the brake shoe can fall out — creating a dragging equipment hazard.</p>
+    </div>
+  </div>
+  <h3>Sticking Brakes</h3>
+  <p>A sticking brake causes the wheel to drag rather than roll freely. This generates intense heat that causes <strong>thermal cracking and shelling of wheels</strong>. Over time a sticking brake can also lead to a journal overheating. Signs include:</p>
+  <ul>
+    <li>Smoke from beneath the car</li>
+    <li>A burning smell (rubber, metal)</li>
+    <li>A hot wheel alarm from a WIS detector</li>
+    <li>Flat spots developing on the wheel</li>
+  </ul>
+  <div class="takeaway">
+    <div class="takeaway-icon">&#128293;</div>
+    <div><p><strong>Thermal cracks from sticking brakes</strong> are a leading cause of wheel failures and derailments. Never ignore signs of a dragging brake.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(35)">&#8592; Previous</button>
+    <span class="page-nav-center">37 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(37)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 37 ═══ -->
+<div class="page" id="page-37">
+  <div class="page-section-badge">Defective Conditions</div>
+  <h1 class="page-title">Coupling &amp; Knuckle Defects</h1>
+  <div class="page-divider"></div>
+  <table class="data-table">
+    <thead><tr><th>Defect</th><th>Consequence if Not Fixed</th><th>Required Action</th></tr></thead>
+    <tbody>
+      <tr><td>Cracked knuckle</td><td>Train separation; derailment of trailing equipment</td><td><strong>Must be replaced</strong> before movement</td></tr>
+      <tr><td>Drooping coupler or missing carrying arm</td><td>Damage to other car components; train separation or derailment</td><td>Set out; repair before movement</td></tr>
+      <tr><td>Bent centre sill and broken striker</td><td>Structural failure under buff load; derailment</td><td><strong>Car must NOT be lifted or moved</strong></td></tr>
+      <tr><td>Badly bent or broken uncoupling lever</td><td>Difficulty uncoupling; possible employee injury</td><td>Set out at first available location</td></tr>
+    </tbody>
+  </table>
+  <div class="callout danger">
+    <div class="callout-icon">&#128683;</div>
+    <div><p><strong>A car with a bent centre sill and broken striker must NOT be lifted.</strong> This is a hard rule — the structural integrity of the car is compromised and buff/draft forces could cause catastrophic failure.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(36)">&#8592; Previous</button>
+    <span class="page-nav-center">38 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(38)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 38 ═══ -->
+<div class="page" id="page-38">
+  <div class="page-section-badge">Defective Conditions</div>
+  <h1 class="page-title">Wheel &amp; Bearing Defects</h1>
+  <div class="page-divider"></div>
+  <h3>Skidded (Flat) Wheels</h3>
+  <div class="key-rule">
+    <div class="key-rule-label">Defect Standard</div>
+    <p>Wheels are defective when: the flat spot is <strong>2½ inches or more</strong> in length, OR when two or more adjoining spots are each <strong>1 to 2 inches</strong> in length.</p>
+  </div>
+  <p>Flat spots cause repeated impact loading on the rail — damaging both track and the car's bearings. The thumping sound they produce is audible at low speeds.</p>
+  <h3>Roller Bearing End Bolt Defects</h3>
+  <div class="card-row">
+    <div class="card accent-red"><div class="card-title">Loose or Missing End Bolt(s)</div><p><strong>Action:</strong> Apply a Thermomelt Heat Stik to confirm bearing temperature. If running hot — set out. Car must not move further until inspected by a certified car inspector.</p></div>
+    <div class="card accent-orange"><div class="card-title">Thermal Cracks / Shell</div><p>Severe heat from sticking brakes can cause thermal cracks and shelling of the wheel tread. Any visible cracking or missing wheel tread material = immediate set out.</p></div>
+  </div>
+  <div class="callout rule">
+    <div class="callout-icon">&#128204;</div>
+    <div><p>A proper temperature measuring device must be used <strong>in addition to a visual inspection</strong> when inspecting a suspected hot bearing. Visual alone is insufficient.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(37)">&#8592; Previous</button>
+    <span class="page-nav-center">39 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(39)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 39 ═══ -->
+<div class="page" id="page-39">
+  <div class="page-section-badge">Defective Conditions</div>
+  <h1 class="page-title">Load &amp; Door Defects</h1>
+  <div class="page-divider"></div>
+  <div class="two-col text-img">
+    <div>
+      <table class="data-table">
+        <thead><tr><th>Defect</th><th>Action Required</th></tr></thead>
+        <tbody>
+          <tr><td>Non-dimensional load extending beyond side or end; part missing</td><td>Set out car; advise RTC immediately</td></tr>
+          <tr><td>Protruding steel band on load</td><td>Correct immediately; inspect load to ensure it is adequately secured</td></tr>
+          <tr><td>Insecurely attached door</td><td>Secure it — or set out / do not lift the car</td></tr>
+          <tr><td>End door open/damaged/improperly secured</td><td>Secure or set out before movement</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warning">
+        <div class="callout-icon">&#9888;</div>
+        <div><p>A protruding steel band is not merely a cosmetic issue — it can catch on structures, switch equipment, or personnel standing near the track.</p></div>
+      </div>
+    </div>
+    <div>
+      <img src="media/image27.png" alt="Flatcar with load" class="content-img">
+      <p class="img-caption">Flatcar loads must be inspected for shifting, protruding banding, and clearance issues.</p>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(38)">&#8592; Previous</button>
+    <span class="page-nav-center">40 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(40)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 40 ═══ -->
+<div class="page" id="page-40">
+  <div class="page-section-badge">Defective Conditions</div>
+  <h1 class="page-title">Bad Order Cards</h1>
+  <div class="page-divider"></div>
+  <div class="definition">
+    <div class="definition-label">Definition</div>
+    <p>A <strong>Bad Order Card</strong> is a physical tag placed on a defective car to identify it as out of service and indicate the nature of the defect. It must be placed at a <strong>conspicuous location</strong> on the car.</p>
+  </div>
+  <h3>When to Apply a Bad Order Card</h3>
+  <p>A bad order card is applied whenever a car is set out for a defect that cannot be corrected enroute. The card communicates to yard crews, inspectors, and mechanical staff that the car requires attention before returning to service.</p>
+  <h3>What Information Goes on the Card</h3>
+  <ul>
+    <li>Date of defect discovery</li>
+    <li>Car initial and number</li>
+    <li>Location where set out</li>
+    <li>Nature of defect (description)</li>
+    <li>Name of employee setting out the car</li>
+  </ul>
+  <div class="callout info">
+    <div class="callout-icon">&#128203;</div>
+    <div><p>The bad order card is the physical equivalent of the defect report submitted to the RTC. Both are required when setting out a car. Never leave a defective car without a bad order card attached.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(39)">&#8592; Previous</button>
+    <span class="page-nav-center">41 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(41)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 41 ═══ -->
+<div class="page" id="page-41">
+  <div class="page-section-badge">Defective Conditions</div>
+  <h1 class="page-title">Knowledge Check 4</h1>
+  <div class="page-divider"></div>
+
+  <div class="quiz-box" data-correct="c">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 1 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">While inspecting a car, you notice it is leaning or listing to the side. What might this indicate?</p>
+      <label class="quiz-option"><input type="radio" name="q4a" value="a"> A "HIGH/LOW" coupler condition on adjoining cars</label>
+      <label class="quiz-option"><input type="radio" name="q4a" value="b"> The "empty-load" feature requires adjustment</label>
+      <label class="quiz-option"><input type="radio" name="q4a" value="c"> A twisted centre sill or a missing/broken side bearing</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! A car listing to the side most likely indicates a twisted centre sill or a missing/broken side bearing." data-wrong="Incorrect. A listing car most likely indicates a twisted centre sill or a missing/broken side bearing."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="a">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 2 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">When are skidded (flat) wheels considered defective?</p>
+      <label class="quiz-option"><input type="radio" name="q4b" value="a"> When the flat spot is 2½ inches or more, or two adjoining spots are each 1 to 2 inches</label>
+      <label class="quiz-option"><input type="radio" name="q4b" value="b"> When the flat spot exceeds 4 inches, or two adjoining spots are each 2 inches</label>
+      <label class="quiz-option"><input type="radio" name="q4b" value="c"> When the pounding noise is loud enough to cause concern</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! The defect standard is 2½ inches or more, or two adjoining spots each 1 to 2 inches." data-wrong="Incorrect. The standard is 2½+ inches or two adjoining spots each 1 to 2 inches — not 4 inches."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="b">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 3 of 3</div>
+    <div class="quiz-body">
+      <p class="quiz-question">May a car with a bent centre sill and broken striker be lifted into a train?</p>
+      <label class="quiz-option"><input type="radio" name="q4c" value="a"> Yes, if the conductor authorizes it</label>
+      <label class="quiz-option"><input type="radio" name="q4c" value="b"> No</label>
+      <label class="quiz-option"><input type="radio" name="q4c" value="c"> Yes, if speed is restricted to 15 mph or less</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! A car with a bent centre sill and broken striker must NOT be lifted under any circumstances." data-wrong="Incorrect. No — a car with a bent centre sill and broken striker must NOT be lifted. This is a hard rule."></div>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(40)">&#8592; Previous</button>
+    <span class="page-nav-center">42 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(42)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 42 ═══ -->
+<div class="page" id="page-42">
+  <div class="page-section-badge">Exceptional Conditions</div>
+  <h1 class="page-title">Emergency Brake Applications</h1>
+  <div class="page-divider"></div>
+  <div class="scenario">
+    <div class="scenario-label">&#128680; Scenario</div>
+    <p>Your train is stopped by an unexpected emergency brake application. The cause is unknown. What is your first action?</p>
+  </div>
+  <h3>Priority 1: Check for Track Obstruction</h3>
+  <p>Before anything else, determine whether the emergency brake application may have resulted in the <strong>obstruction of the main track</strong> — or an adjacent main track where movements may be approaching.</p>
+  <p>This is critical because an obstructed main track is an immediate danger to other trains, and protection must be established without delay.</p>
+  <h3>Causes of Emergency Brake Applications</h3>
+  <div class="card-row three">
+    <div class="card accent-red"><div class="card-title">&#128683; Train Separation</div><p>Broken coupler, failed knuckle — train parts company and pulls the brake pipe apart.</p></div>
+    <div class="card accent-orange"><div class="card-title">&#9889; Brake Line Issue</div><p>Air hose failure, emergency valve activation, or brake pipe damage.</p></div>
+    <div class="card accent-blue"><div class="card-title">&#128739; Derailment</div><p>A derailed car may trigger the emergency application as it pulls the brake pipe or triggers a derailment detector.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(41)">&#8592; Previous</button>
+    <span class="page-nav-center">43 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(43)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 43 ═══ -->
+<div class="page" id="page-43">
+  <div class="page-section-badge">Exceptional Conditions</div>
+  <h1 class="page-title">CROR Rule 102 — Emergency Stop Protection</h1>
+  <div class="page-divider"></div>
+  <div class="key-rule">
+    <div class="key-rule-label">CROR Rule 102 — Emergency Stop Protection</div>
+    <p>The crew of a movement stopping as a result of an emergency brake application, or other abnormal condition which may cause an adjacent main track to be obstructed, must:</p>
+  </div>
+  <ul class="step-list">
+    <li><p><strong>Immediately transmit a radio broadcast</strong> on the standby channel: <em>"EMERGENCY, EMERGENCY, EMERGENCY — (movement) on (designation of track) at (location). All movements on (adjacent track) hold clear."</em></p></li>
+    <li><p><strong>Determine the cause</strong> of the emergency stop and assess the extent of any obstruction.</p></li>
+    <li><p><strong>Protect the adjacent track</strong> using flagging, fouling point protection, or such other means as are required.</p></li>
+    <li><p><strong>Contact the RTC</strong> to report the situation and await instructions.</p></li>
+  </ul>
+  <div class="callout danger">
+    <div class="callout-icon">&#128683;</div>
+    <div><p>The emergency radio broadcast must be <strong>immediate</strong> — before you even know the cause. A train on the adjacent track may be approaching at full speed and needs advance warning now.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(42)">&#8592; Previous</button>
+    <span class="page-nav-center">44 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(44)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 44 ═══ -->
+<div class="page" id="page-44">
+  <div class="page-section-badge">Exceptional Conditions</div>
+  <h1 class="page-title">Unusual Slack Action</h1>
+  <div class="page-divider"></div>
+  <div class="scenario">
+    <div class="scenario-label">&#128680; Scenario</div>
+    <p>Your movement was stopped by an emergency brake application. Brake pipe pressure on the rear car recovers, but when you attempt to restart, you notice <strong>unusual slack action.</strong> Must the movement be stopped and inspected?</p>
+  </div>
+  <div class="key-rule">
+    <div class="key-rule-label">Answer</div>
+    <p><strong>Yes.</strong> Unusual slack action after an emergency application is a strong indicator of a train separation — a broken coupler or knuckle somewhere in the train. The movement must be stopped and a thorough walking inspection performed.</p>
+  </div>
+  <h3>Why Slack Action Signals a Problem</h3>
+  <p>After an emergency brake application, when all brakes release uniformly and the train is intact, restart should feel normal. <strong>Unusual slack</strong> — excessive run-in, run-out, or a "free" feeling — means part of the train is not behaving as a single connected unit. This must be investigated before further movement.</p>
+  <div class="callout warning">
+    <div class="callout-icon">&#9888;</div>
+    <div><p>Never assume unusual slack is "just the train settling." Walk the train. Confirm coupler integrity before proceeding.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(43)">&#8592; Previous</button>
+    <span class="page-nav-center">45 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(45)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 45 ═══ -->
+<div class="page" id="page-45">
+  <div class="page-section-badge">Exceptional Conditions</div>
+  <h1 class="page-title">Knowledge Check 5</h1>
+  <div class="page-divider"></div>
+
+  <div class="quiz-box" data-correct="a">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 1 of 2</div>
+    <div class="quiz-body">
+      <p class="quiz-question">What is the FIRST action when a train is stopped by an emergency brake application?</p>
+      <label class="quiz-option"><input type="radio" name="q5a" value="a"> Determine if the emergency application may have caused the obstruction of the main track or an adjacent main track</label>
+      <label class="quiz-option"><input type="radio" name="q5a" value="b"> Walk the entire train to find the cause</label>
+      <label class="quiz-option"><input type="radio" name="q5a" value="c"> Attempt to release brakes and restart the train</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! The first priority is to determine if the main track or adjacent main track may be obstructed — other trains may be approaching." data-wrong="Incorrect. The first action is to determine if any track is obstructed — an approaching train may be in danger."></div>
+    </div>
+  </div>
+
+  <div class="quiz-box" data-correct="a">
+    <div class="quiz-header"><span class="quiz-header-icon">&#10067;</span> Question 2 of 2</div>
+    <div class="quiz-body">
+      <p class="quiz-question">Your train is stopped by an emergency brake application. Brake pipe pressure recovers on the rear car, but you notice unusual slack action when restarting. Must the movement be stopped and inspected?</p>
+      <label class="quiz-option"><input type="radio" name="q5b" value="a"> Yes</label>
+      <label class="quiz-option"><input type="radio" name="q5b" value="b"> No — if brake pipe pressure recovered, the train is intact</label>
+      <button class="quiz-btn">Check Answer</button>
+      <div class="quiz-feedback" data-correct="Correct! Unusual slack action indicates a possible separation. The movement must be stopped and inspected." data-wrong="Incorrect. Brake pipe recovery does not confirm train integrity. Unusual slack action requires stopping and inspection."></div>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(44)">&#8592; Previous</button>
+    <span class="page-nav-center">46 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(46)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 46 ═══ -->
+<div class="page" id="page-46">
+  <div class="page-section-badge">Reporting &amp; Documentation</div>
+  <h1 class="page-title">Reporting to the RTC</h1>
+  <div class="page-divider"></div>
+  <p>When a car is set out, the following information <strong>must</strong> be provided to the RTC:</p>
+  <div class="card-row">
+    <div class="card accent-yellow"><div class="card-icon">&#128197;</div><div class="card-title">Date</div><p>The date the defect was detected.</p></div>
+    <div class="card accent-blue"><div class="card-icon">&#128683;</div><div class="card-title">Defect Detected</div><p>Description of the defect observed — be specific.</p></div>
+  </div>
+  <div class="card-row three">
+    <div class="card"><div class="card-icon">&#127989;</div><div class="card-title">Car Initial</div><p>The reporting mark of the car (e.g., CN, CP, TTGX).</p></div>
+    <div class="card"><div class="card-icon">&#128290;</div><div class="card-title">Car Number</div><p>The full car number as stencilled on the car body.</p></div>
+    <div class="card"><div class="card-icon">&#128204;</div><div class="card-title">Location of Defect</div><p>Which axle, which side, which component is defective.</p></div>
+  </div>
+  <div class="callout rule">
+    <div class="callout-icon">&#128204;</div>
+    <div><p>Always <strong>confirm the car number with the RTC</strong> after a detector alarm. The RTC can cross-reference the axle count from the detector with the train's consist to verify the car ID.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(45)">&#8592; Previous</button>
+    <span class="page-nav-center">47 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(47)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 47 ═══ -->
+<div class="page" id="page-47">
+  <div class="page-section-badge">Reporting &amp; Documentation</div>
+  <h1 class="page-title">Additional Information Required</h1>
+  <div class="page-divider"></div>
+  <p>The RTC may require <strong>additional information</strong> beyond the minimum set-out report. Be prepared to provide:</p>
+  <table class="data-table">
+    <thead><tr><th>Information</th><th>Why It Matters</th></tr></thead>
+    <tbody>
+      <tr><td>Where the car was set out / how it is being handled</td><td>Allows dispatch to track the car and arrange repairs</td></tr>
+      <tr><td>For hot box set-out: was the hot brake end identified as <em>leading</em> or <em>trailing</em>?</td><td>Helps mechanical staff identify which end to inspect first</td></tr>
+      <tr><td>Was an approved temperature measuring device used?</td><td>Confirms the inspection was properly conducted</td></tr>
+      <tr><td>Who detected the problem / how was it detected?</td><td>Documents the detection method (WIS, crew visual, etc.)</td></tr>
+      <tr><td>Time the defect was detected</td><td>Establishes timeline for investigation</td></tr>
+      <tr><td>Weather and visibility conditions</td><td>Relevant context for the inspection quality</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway">
+    <div class="takeaway-icon">&#128203;</div>
+    <div><p><strong>Complete reporting protects you</strong> and ensures the car is properly tracked and repaired before returning to service. Incomplete reports lead to the same defect being missed again.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(46)">&#8592; Previous</button>
+    <span class="page-nav-center">48 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(48)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 48 ═══ -->
+<div class="page" id="page-48">
+  <div class="page-section-badge">Reporting &amp; Documentation</div>
+  <h1 class="page-title">Where Detectors Are Located</h1>
+  <div class="page-divider"></div>
+  <p>Knowing where detectors are on your subdivision is part of your job. This knowledge allows you to anticipate messages, maintain radio discipline, and understand the gaps in coverage where extra crew vigilance is needed.</p>
+  <div class="two-col">
+    <div class="card accent-yellow">
+      <div class="card-icon">&#128214;</div>
+      <div class="card-title">Time Table Station Column</div>
+      <p>WIS locations are listed in the station column of the time table for each subdivision. Mileage and detector type are shown.</p>
+    </div>
+    <div class="card accent-blue">
+      <div class="card-icon">&#128203;</div>
+      <div class="card-title">Subdivision Footnotes / Special Instructions</div>
+      <p>Some standalone detectors or special-function detectors are listed separately in footnotes or in General Bulletin Orders.</p>
+    </div>
+  </div>
+  <h3>Hazard Detectors</h3>
+  <p>In addition to WIS equipment defect detectors, railways also maintain <strong>hazard detectors</strong> along the right-of-way:</p>
+  <ul>
+    <li>Slump, Washout, High Water, and Debris Flow Detectors</li>
+    <li>Avalanche Detectors (mountain territory)</li>
+    <li>Bridge Scour Detectors</li>
+    <li>Slide Detector Fences</li>
+    <li>Wind Detectors (elevated bridges, exposed territory)</li>
+    <li>Fibre Optic Break Detectors</li>
+  </ul>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(47)">&#8592; Previous</button>
+    <span class="page-nav-center">49 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(49)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 49 ═══ -->
+<div class="page" id="page-49">
+  <div class="page-section-badge">Wrap-Up</div>
+  <h1 class="page-title">Module Summary</h1>
+  <div class="page-divider"></div>
+  <div class="card-row">
+    <div class="card accent-yellow"><div class="card-icon">&#128269;</div><div class="card-title">Inspection Types</div><p>Roll-by, pull-by (max 15 mph), and running inspections are all required tools. Solo pull-by = one side pull-by + one side standing.</p></div>
+    <div class="card accent-blue"><div class="card-icon">&#128268;</div><div class="card-title">WIS Devices</div><p>HBD, HWD, DED, WILD, Derailment, LRMD, TPD, TADS, WIM, Dimensional. Locations in the time table.</p></div>
+  </div>
+  <div class="card-row">
+    <div class="card accent-orange"><div class="card-icon">&#128226;</div><div class="card-title">Alarm Response</div><p>Hot box → stop, pull-by ≤10 mph, inspect ±12 axles, apply 93°C Heat Stik. Hot wheel → same without Heat Stik. Multiple → stop, call RTC.</p></div>
+    <div class="card accent-red"><div class="card-icon">&#9888;</div><div class="card-title">Defects &amp; Actions</div><p>Cracked knuckle = replace before move. Bent sill+broken striker = do not lift. Brake rigging down = set out. Flat spot ≥2½" = defective.</p></div>
+  </div>
+  <div class="card-row">
+    <div class="card accent-green"><div class="card-icon">&#128680;</div><div class="card-title">Emergency Brakes</div><p>First: check for track obstruction. Broadcast Rule 102 emergency immediately. Unusual slack = stop and inspect.</p></div>
+    <div class="card"><div class="card-icon">&#128203;</div><div class="card-title">Reporting</div><p>Date, defect, car initial, car number, location of defect — all required when setting out a car.</p></div>
+  </div>
+  <div class="takeaway">
+    <div class="takeaway-icon">&#127941;</div>
+    <div><p><strong>You are the final safety layer.</strong> Technology detects defects at fixed locations. You detect them everywhere else, every shift, every trip.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(48)">&#8592; Previous</button>
+    <span class="page-nav-center">50 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(50)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 50 ═══ -->
+<div class="page" id="page-50">
+  <div class="page-section-badge">Wrap-Up</div>
+  <h1 class="page-title">Pre-Exam Instructions</h1>
+  <div class="page-divider"></div>
+  <div class="callout rule">
+    <div class="callout-icon">&#128221;</div>
+    <div><p><strong>The pre-exam is NOT for marks.</strong> It is a learning tool. Research shows that retrieval practice immediately after instruction dramatically improves long-term retention. <em>(Make It Stick, Brown, Roediger &amp; McDaniel, 2014)</em></p></div>
+  </div>
+  <h3>Instructions</h3>
+  <ul>
+    <li><strong>Work with your team</strong> — discuss every answer together</li>
+    <li>You <strong>may use written materials</strong> to find answers</li>
+    <li><strong>No cell phones, computers, or AI</strong> during the exam</li>
+    <li><strong>Time limit: 20 minutes</strong></li>
+    <li>When finished, hand your exam to the instructor</li>
+    <li>You will be given another team's exam to mark</li>
+  </ul>
+  <h3>Topics Covered</h3>
+  <ul>
+    <li>Inspection types and procedures (pull-by speed, solo procedure)</li>
+    <li>WIS device identification and function</li>
+    <li>Responding to hot box, hot wheel, and dragging equipment alarms</li>
+    <li>Markal Heat Stik application and thresholds</li>
+    <li>Defect identification and required actions</li>
+    <li>Emergency brake procedures (CROR Rule 102)</li>
+    <li>Reporting requirements</li>
+  </ul>
+  <div class="takeaway">
+    <div class="takeaway-icon">&#127941;</div>
+    <div><p><strong>You are ready.</strong> You have covered every rule, every detector, and every defect. Trust your training.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(49)">&#8592; Previous</button>
+    <span class="page-nav-center">51 / 52</span>
+    <button class="page-nav-btn next" onclick="showPage(51)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 51 ═══ -->
+<div class="page" id="page-51">
+  <div class="page-section-badge">Wrap-Up</div>
+  <h1 class="page-title">References</h1>
+  <div class="page-divider"></div>
+  <table class="data-table">
+    <thead><tr><th>Source</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>CROR Rule 102</strong></td><td>Emergency Stop Protection. Transport Canada.</td></tr>
+      <tr><td><strong>CROR Rule 110</strong></td><td>Pull-by Inspection requirements. Transport Canada.</td></tr>
+      <tr><td><strong>CN GOI Section 5</strong></td><td>Equipment Inspection, Hazard Detection, Warning Systems (Dec 2015). CN Rail.</td></tr>
+      <tr><td><strong>CP GOI Section 5</strong></td><td>Equipment Inspection procedures. CP Rail.</td></tr>
+      <tr><td><strong>TC Publication BI-5916</strong></td><td><em>Rules Respecting the Inspection of Running Gear.</em> Transport Canada.</td></tr>
+      <tr><td><strong>CN QSOC — Inspections</strong></td><td>Quality Standards of Conduct for train inspections. CN Rail.</td></tr>
+      <tr><td><strong>Make It Stick</strong></td><td>Brown, Roediger, McDaniel (2014). Harvard/Belknap Press. The learning science behind this module's design.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout success">
+    <div class="callout-icon">&#127891;</div>
+    <div><p><strong>Module 5 complete.</strong> Every rule you have learned exists because of real events with real consequences. The next time you perform an inspection, you are not just following procedure — you are preventing the next incident.</p></div>
+  </div>
+  <div class="page-nav">
+    <button class="page-nav-btn prev" onclick="showPage(50)">&#8592; Previous</button>
+    <span class="page-nav-center">52 / 52</span>
+    <button class="page-nav-btn next" disabled>Next &#8594;</button>
+  </div>
+</div>
+
+</div><!-- end content-wrap -->
+
+<!-- GLOBAL NAV BAR (bottom) -->
+<div style="position:fixed;bottom:0;left:var(--sidebar);right:0;background:#fff;
+  border-top:2px solid var(--gray-1);padding:10px 24px;display:flex;
+  justify-content:space-between;align-items:center;z-index:50;
+  box-shadow:0 -2px 8px rgba(0,0,0,.06)">
+  <button class="page-nav-btn" id="btn-prev" disabled>&#8592; Previous</button>
+  <span id="page-indicator" style="font-size:.8rem;color:var(--gray-3)">1 / 52</span>
+  <button class="page-nav-btn next" id="btn-next">Next &#8594;</button>
+</div>
+
+</main>
+
+<script>
+const pages = Array.from(document.querySelectorAll('.page'));
+const navItems = Array.from(document.querySelectorAll('.nav-item'));
+const progFill = document.getElementById('prog-fill');
+const progLabel = document.getElementById('prog-label');
+const sidebar = document.getElementById('sidebar');
+let current = 0;
+const completed = new Set();
+
+function showPage(idx){
+  if(idx < 0 || idx >= pages.length) return;
+  pages[current].classList.remove('active');
+  navItems[current].classList.remove('active');
+  completed.add(current);
+  navItems[current].classList.add('done');
+  navItems[current].querySelector('.nav-check').textContent = '✓';
+  current = idx;
+  pages[current].classList.add('active');
+  navItems[current].classList.add('active');
+  navItems[current].classList.remove('done');
+  const pct = Math.round((completed.size / pages.length)*100);
+  progFill.style.width = pct + '%';
+  progLabel.textContent = pct + '% complete';
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.querySelectorAll('.quiz-feedback').forEach(f=>f.style.display='none');
+  document.querySelectorAll('.quiz-option').forEach(o=>o.classList.remove('correct','wrong','show-correct'));
+  document.querySelectorAll('.quiz-btn').forEach(b=>{b.disabled=false;b.textContent='Check Answer';});
+  document.getElementById('btn-prev').disabled = current===0;
+  document.getElementById('btn-next').disabled = current===pages.length-1;
+  const pi = document.getElementById('page-indicator');
+  if(pi) pi.textContent = (current+1)+' / '+pages.length;
+}
+
+document.getElementById('btn-prev').addEventListener('click',()=>showPage(current-1));
+document.getElementById('btn-next').addEventListener('click',()=>showPage(current+1));
+navItems.forEach((ni,i)=>ni.addEventListener('click',()=>showPage(i)));
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input')) return;
+  if(e.key==='ArrowRight'||e.key==='PageDown') showPage(current+1);
+  if(e.key==='ArrowLeft'||e.key==='PageUp') showPage(current-1);
+});
+const menuBtn = document.getElementById('menu-btn');
+menuBtn && menuBtn.addEventListener('click',()=>sidebar.classList.toggle('open'));
+document.addEventListener('click',e=>{
+  if(!sidebar.contains(e.target)&&!menuBtn.contains(e.target)) sidebar.classList.remove('open');
+});
+document.querySelectorAll('.nav-toggle').forEach(t=>{
+  t.addEventListener('click',()=>{
+    const grp = t.nextElementSibling;
+    grp && grp.classList.toggle('collapsed');
+    t.querySelector('.toggle-arrow').textContent = grp.classList.contains('collapsed') ? '▶' : '▼';
+  });
+});
+function setupQuiz(quizEl){
+  const submitBtn = quizEl.querySelector('.quiz-btn');
+  const feedback = quizEl.querySelector('.quiz-feedback');
+  const options = quizEl.querySelectorAll('.quiz-option');
+  const correct = quizEl.dataset.correct;
+  submitBtn.addEventListener('click',()=>{
+    const sel = quizEl.querySelector('input[type=radio]:checked');
+    if(!sel) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitted';
+    const val = sel.value;
+    options.forEach(o=>{
+      const radio = o.querySelector('input');
+      if(radio.value === correct) o.classList.add('show-correct');
+      else if(radio.checked) o.classList.add('wrong');
+    });
+    if(val === correct){
+      feedback.textContent = feedback.dataset.correct || 'Correct!';
+      feedback.className = 'quiz-feedback correct';
+    } else {
+      feedback.textContent = feedback.dataset.wrong || 'Not quite. See the highlighted answer.';
+      feedback.className = 'quiz-feedback wrong';
+    }
+    feedback.style.display = 'block';
+  });
+}
+document.querySelectorAll('.quiz-box').forEach(setupQuiz);
+showPage(0);
+</script>
+
+</body>
+</html>
