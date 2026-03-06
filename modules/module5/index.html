@@ -209,6 +209,7 @@ strong{color:var(--navy)}
 .alarm-card p{margin:0;font-size:.88rem;color:var(--gray-4)}
 .msg-box{background:#f0f0f0;border-radius:6px;padding:14px 16px;margin-bottom:12px;
   font-family:monospace;font-size:.88rem;border-left:4px solid var(--navy)}
+.fixed-nav{left:0!important}
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
@@ -1711,7 +1712,7 @@ strong{color:var(--navy)}
 </div><!-- end content-wrap -->
 
 <!-- GLOBAL NAV BAR (bottom) -->
-<div style="position:fixed;bottom:0;left:var(--sidebar);right:0;background:#fff;
+<div class="fixed-nav" style="position:fixed;bottom:0;left:var(--sidebar);right:0;background:#fff;
   border-top:2px solid var(--gray-1);padding:10px 24px;display:flex;
   justify-content:space-between;align-items:center;z-index:50;
   box-shadow:0 -2px 8px rgba(0,0,0,.06)">
